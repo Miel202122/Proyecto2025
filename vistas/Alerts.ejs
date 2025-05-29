@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- ========= DOCUMENT METADATA ========= -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Alertas de Calidad</title>
+  <link rel="icon" href="/img/LogoP.png" sizes="48x48" type="image/png">
+  <link rel="stylesheet" href="/styles/ALS.css">
+</head>
+<body>
+  <!-- ========= SIDEBAR NAVIGATION ========= -->
+  <div class="sidebar">
+    <!-- Logo at top of sidebar -->
+    <img src="/img/Logo.png" alt="Logo">
+    <!-- Navigation buttons with Spanish labels -->
+    <button class="menu-button" onclick="window.location.href='/Main'">Inicio</button>
+    <button class="menu-button" onclick="window.location.href='/User'">Usuarios</button>
+    <button class="menu-button" onclick="window.location.href='/agregarProducto'">Productos</button>
+    <button class="menu-button" onclick="window.location.href='/Apiarie'">Zonas</button>
+    <button class="menu-button" onclick="window.location.href='/Harvest'">Cosechas</button>
+    <button class="menu-button" onclick="window.location.href='/QualityH'">Calidad</button>
+    <button class="menu-button" onclick="window.location.href='/Standar'">Estándares</button>
+    <!-- Logout button -->
+    <button class="logout" onclick="window.location.href='/logout'">Salir</button>
+  </div>
+
+  <!-- ========= CONFIRMATION MODAL ========= -->
+  <div id="confirmModal">
+    <div class="modal-content">
+      <!-- Modal heading in English comments, Spanish content -->
+      <h3><strong>Eliminar alerta?</strong></h3>
+      <p>Esta acción no se puede deshacer.</p>
+      <button class="btn-si" onclick="confirmDelete()">Sí, eliminar</button>
+      <button class="btn-no" onclick="cancelDelete()">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- ========= SUCCESS MODAL ========= -->
+  <div id="successModal">
+    <div class="modal-content">
+      <!-- Modal heading -->
+      <h3>¡Éxito!</h3>
+      <p>Alerta registrada correctamente.</p>
+      <button class="btn-ok" onclick="closeSuccess()">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- ========= MAIN CONTENT ========= -->
+  <div class="main-container">
+    <!-- Form container -->
+    <div class="form-container">
+      <h2>Registrar Alerta de Calidad 🐝</h2>
+      <form id="alertForm">
+        <!-- Honey analysis select -->
+        <div class="form-group">
+          <label for="id_honey_quality">Análisis de miel</label>
+          <select id="id_honey_quality" name="id_honey_quality" required></select>
+        </div>
+        <!-- Standard select -->
+        <div class="form-group">
+          <label for="id_quality_standards">Estándar aplicado</label>
+          <select id="id_quality_standards" name="id_quality_standards" required></select>
+        </div>
+        <!-- Dynamic alert message box -->
+        <div id="alert-message" class="alert-box">
+          Seleccione un análisis y un estándar para generar mensaje...
+        </div>
+        <!-- Submit button -->
+        <button type="submit">Guardar Alerta</button>
+      </form>
+    </div>
+
+    <!-- Table container -->
+    <div class="table-container">
+      <h2>Alertas Registradas</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>ID Análisis</th>
+            <th>Estándar</th>
+            <th>Mensaje</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="alertTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Footer link -->
+    <div class="footer">
+      <p><a href="/QualityH">Volver</a></p>
+    </div>
+  </div>
+
+  <!-- ========= CLIENT-SIDE SCRIPT ========= -->
+  <script>
+    // English comments, Spanish page content
+    const qualitySelect = document.getElementById('id_honey_quality');
+    const standardSelect = document.getElementById('id_quality_standards');
+    const alertBox = document.getElementById('alert-message');
+    const alertTableBody = document.getElementById('alertTableBody');
+    let alertToDelete = null;
+
+    // Load dropdowns and table on page load
+    async function loadOptions() {
+      const [qRes, sRes, aRes] = await Promise.all([
+        fetch('/calidades'),  // Fetch honey analyses
+        fetch('/standards'),  // Fetch quality standards
+        fetch('/alertas-calidad')  // Fetch registered alerts
+      ]);
+      const qData = await qRes.json();
+      const sData = await sRes.json();
+      const aData = await aRes.json();
+
+      // Populate analysis select
+      qualitySelect.innerHTML = '<option value="">Seleccione...</option>';
+      qData.data.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.id;
+        opt.textContent = `#${item.id} - ${item.analysis_date}`;
+        qualitySelect.appendChild(opt);
+      });
+
+      // Populate standards select
+      standardSelect.innerHTML = '<option value="">Seleccione...</option>';
+      sData.data.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.id;
+        opt.textContent = item.name;
+        standardSelect.appendChild(opt);
+      });
+
+      // Populate alerts table
+      if (aData.success) {
+        alertTableBody.innerHTML = aData.data.map(alert => {
+          const std = sData.data.find(s => s.id == alert.id_quality_standards);
+          return `
+            <tr>
+              <td>${alert.id}</td>
+              <td>${new Date(alert.alert_date).toLocaleDateString()}</td>
+              <td>${alert.id_honey_quality}</td>
+              <td>${std ? std.name : alert.id_quality_standards}</td>
+              <td style="text-align:left">${alert.message.replaceAll('\n','<br>')}</td>
+              <td>
+                <button onclick="showConfirmation(${alert.id})">🗑️</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+
+    // Generate the alert message based on selected values
+    async function generateMessage() {
+      const qId = qualitySelect.value, sId = standardSelect.value;
+      if (!qId || !sId) return;
+
+      const [qRes, sRes] = await Promise.all([
+        fetch('/calidades'),
+        fetch('/standards')
+      ]);
+      const qList = await qRes.json(), sList = await sRes.json();
+      const qItem = qList.data.find(q => q.id == qId);
+      const sItem = sList.data.find(s => s.id == sId);
+
+      if (!qItem || !sItem) {
+        alertBox.textContent = 'No se pudo generar el mensaje. Verifique las selecciones.';
+        return;
+      }
+
+      const checks = [];
+      const checkRange = (label, val, min, max) => {
+        if (val < min || val > max) {
+          checks.push(`${label} fuera de rango: ${val} (esperado entre ${min}-${max})`);
+        } else {
+          checks.push(`${label} OK: ${val}`);
+        }
+      };
+
+      checkRange('Humedad (%)', qItem.humidity, sItem.min_moisture, sItem.max_moisture);
+      checkRange('Acidez', qItem.acidity, sItem.min_acidity, sItem.max_acidity);
+      checkRange('HMF', qItem.HMF, sItem.min_HMF, sItem.max_HMF);
+      checkRange('Diastasa', qItem.diastase, sItem.min_diastase, sItem.max_diastase);
+
+      alertBox.textContent = checks.join('\n');
+    }
+
+    // Show confirmation modal for deletion
+    function showConfirmation(id) {
+      alertToDelete = id;
+      document.getElementById('confirmModal').style.display = 'flex';
+    }
+    // Confirm deletion of alert
+    async function confirmDelete() {
+      if (!alertToDelete) return;
+      await fetch(`/alertas-calidad/${alertToDelete}`, { method: 'DELETE' });
+      document.getElementById('confirmModal').style.display = 'none';
+      alertToDelete = null;
+      loadOptions();
+    }
+    // Cancel deletion action
+    function cancelDelete() {
+      alertToDelete = null;
+      document.getElementById('confirmModal').style.display = 'none';
+    }
+
+    // Handle form submission to register new alert
+    document.getElementById('alertForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const today = new Date().toISOString().split('T')[0];
+      const payload = {
+        message: alertBox.textContent,
+        alert_date: today,
+        id_quality_standards: standardSelect.value,
+        id_honey_quality: qualitySelect.value
+      };
+      const res = await fetch('/alertas-calidad', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        document.getElementById('successModal').style.display = 'flex';
+        loadOptions();
+      } else {
+        alert('Error al guardar la alerta');
+      }
+    });
+
+    // Close the success modal
+    function closeSuccess() {
+      document.getElementById('successModal').style.display = 'none';
+    }
+
+    // Bind events and initialize data on page load
+    qualitySelect.addEventListener('change', generateMessage);
+    standardSelect.addEventListener('change', generateMessage);
+    window.onload = loadOptions;
+  </script>
+  <script src="/js/validate-forms.js"></script>
+  <script>
+    window.userRole = "<%= (typeof currentUser !== 'undefined' && currentUser && currentUser.role) ? currentUser.role : 'guest' %>";
+  </script>
+  <script src="/js/disable-nav.js"></script>
+
+</body>
+</html>

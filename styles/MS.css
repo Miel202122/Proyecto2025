@@ -1,0 +1,194 @@
+
+    /* Estilos generales de la página */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #FFF7D4;
+      display: flex;
+    }
+
+    /* Estilos para el menú lateral izquierdo */
+    .sidebar {
+      width: 10%;
+      background-color: #E6A400;
+      padding: 20px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+      position: fixed;
+    }
+
+    /* Logo dentro del sidebar */
+    .sidebar img {
+      width: 240px;
+      margin-bottom: 30px;
+    }
+
+    /* Botones del menú */
+    .menu-button {
+      color: white;
+      background-color: transparent;
+      font-weight: bold;
+      border: none;
+      font-size: 16px;
+      margin: 10px 0;
+      padding: 12px 20px;
+      width: 90%;
+      text-align: left;
+      border-radius: 10px;
+      transition: background-color 0.3s, transform 0.2s;
+      cursor: pointer;
+    }
+
+    /* Efecto al pasar el cursor por los botones del menú */
+    .menu-button:hover {
+      background-color: #D18C00;
+      transform: translateX(5px);
+    }
+
+    /* Botón de salir */
+    .logout {
+      margin-top: 200%;
+      font-weight: bold;
+      background-color: #D18C00;
+      color: white;
+      padding: 12px 20px;
+      width: 90%;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .logout:hover {
+      background-color: rgb(204, 173, 0);
+    }
+
+    /* Contenedor principal al lado del menú */
+    .main-container {
+      margin-left: 10%; /* espacio lateral para compensar el menú fijo */
+      flex-grow: 1;
+      padding: 30px;
+      display: flex;
+      gap: 25px;
+      align-items: stretch; /* mismo alto para contenedores hijos */
+    }
+
+    /* Contenedor de la izquierda (mapa e información) */
+    .left-container {
+      flex: 65%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Contenedor del mapa */
+    .map-container {
+      height: 450px;
+      border-radius: 5px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Estilo del mapa Leaflet */
+    #map {
+      width: 100%;
+      height: 150%;
+    }
+
+    /* Contenedor de datos + gráfica */
+    .info-chart-container {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Contenedor de información de la zona */
+    .data-container, .chart-container {
+      background: #FFF3CD;
+      padding: 10px;
+      flex: 1;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .data-container h2, .chart-container h2 {
+      color: #5A3E2B;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .data-container p {
+      margin: 5px 0;
+    }
+
+    /* Galería de imágenes */
+    .image-gallery {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .image-gallery img {
+      width: 28%;
+      height: 100%;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    /* Contenedor derecho de productos destacados */
+    .right-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      background: #FFDD88;
+      padding: 10px;
+      width: 100%;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .right-container h3 {
+      color: #8B5E3C;
+      margin-bottom: 20px;
+    }
+
+    /* Lista de productos */
+    .products-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+      max-height: 100%;
+      padding-right: 5px;
+      box-sizing: border-box;
+    }
+
+    /* Cada producto individual */
+    .product-item {
+      background: #FFF3CD;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .product-item img {
+      width: 100%;
+      max-height: 100%;
+      border-radius: 5px;
+      object-fit: cover;
+      margin-bottom: 25px;
+    }
+
+    .product-item h4, .product-item p {
+      margin: 0;
+    }

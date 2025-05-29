@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Acceso denegado</title>
+  <link rel="stylesheet" href="/styles/ALS.css">
+</head>
+<body>
+  <!-- ========= ERROR MODAL ========= -->
+  
+  <script>
+    // Mantener visible el modal por defecto
+    document.getElementById('errorModal').style.display = 'flex';
+  </script>
+  <script>
+    window.userRole = "<%= (typeof currentUser !== 'undefined' && currentUser && currentUser.role) ? currentUser.role : 'guest' %>";
+  </script>
+  <script src="/js/disable-nav.js"></script>
+
+</body>
+</html>

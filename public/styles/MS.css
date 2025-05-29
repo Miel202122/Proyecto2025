@@ -1,0 +1,296 @@
+/* ========= PAGE LAYOUT & BACKGROUND =========
+   - Base font, full‑screen flex layout, and background color
+*/
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #FFF7D4;
+  margin: 0;
+}
+
+  /* Original MS.css styles remain; only new rules below */
+  .quality-chart-container {
+    background: #FFF3CD;
+    padding: 10px;
+    flex: 1;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .quality-chart-container h2 {
+    color: #5A3E2B;
+    margin-bottom: 10px;
+  }
+  #qualityChart {
+    width: 100% !important;
+    max-height: 350px;
+  }
+
+/* ========= SIDEBAR MENU =========
+   - Fixed left panel with vertical nav items
+*/
+.sidebar {
+  width: 180px;
+  background-color: #E6A400;
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+  position: fixed;
+  top: 0;      /* stick to top */
+  left: 0;     /* stick to left edge */
+}
+/* Sidebar logo image */
+.sidebar img {
+  width: 240px;
+  margin-bottom: 30px;
+}
+/* Navigation buttons in sidebar */
+.menu-button {
+  color: white;
+  background-color: transparent;
+  font-weight: bold;
+  border: none;
+  font-size: 16px;
+  margin: 10px 0;
+  padding: 12px 20px;
+  width: 90%;
+  text-align: left;
+  border-radius: 10px;
+  transition: background-color 0.3s, transform 0.2s;
+  cursor: pointer;
+}
+.menu-button:hover {
+  background-color: #D18C00;
+  transform: translateX(5px);
+}
+/* Logout button at bottom of sidebar */
+.logout {
+  margin-top: 130%;
+  font-weight: bold;
+  background-color: #D18C00;
+  color: white;
+  padding: 12px 20px;
+  width: 90%;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.logout:hover {
+  background-color: rgb(204, 173, 0);
+}
+
+/* ========= MAIN CONTENT AREA =========
+   - Offset by sidebar, flex container for left/right panels
+*/
+.main-container {
+  margin-left: 10%;          /* make room for sidebar */
+  flex-grow: 1;
+  padding: 30px;
+  display: flex;
+  gap: 25px;
+  align-items: stretch;      /* equal-height children */
+}
+
+/* ========= FEATURED PRODUCTS WIDGET =========
+   - Sidebar card for highlighting products
+*/
+.featured-products {
+  background-color: #FFE69F;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  width: 300px;
+  box-sizing: border-box;
+}
+/* Title inside featured-products */
+.section-title {
+  margin: 0 0 1rem;
+  text-align: center;
+  color: #846A32;
+  font-size: 1.3rem;
+}
+/* Vertical list of featured product cards */
+.products-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+/* Individual product card styling */
+.product-item {
+  background: #FFF7D4;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  text-align: center;
+}
+.product-item img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.10rem;
+}
+.product-item h4 {
+  margin: 0.5rem 0 0.25rem;
+  font-weight: bold;
+  color: #846A32;
+}
+.product-item p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #333;
+}
+.product-item .price {
+  display: block;
+  margin-top: 0.1rem;
+  font-weight: bold;
+  color: #846A32;
+}
+
+/* ========= LEFT PANEL (MAP & DATA) =========
+   - Map container and info/chart sections
+*/
+.left-container {
+  flex: 65%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+/* Map wrapper with fixed height and rounded corners */
+.map-container {
+  height: 450px;
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+/* Leaflet map element */
+#map {
+  width: 100%;
+  height: 150%;
+}
+/* Side-by-side info text and quality table */
+.info-chart-container {
+  display: flex;
+  gap: 10px;
+}
+/* Data panel styling */
+.data-container,
+.quality-table-container {
+  background: #FFF3CD;
+  padding: 10px;
+  flex: 1;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.data-container h2,
+.quality-table-container h2 {
+  color: #5A3E2B;
+  text-align: center;
+  margin-bottom: 10px;
+}
+.data-container p {
+  margin: 5px 0;
+}
+
+/* ========= IMAGE GALLERY =========
+   - Row of preview images with equal sizing
+*/
+.image-gallery {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+.image-gallery img {
+  width: 32%;
+  height: 90%;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+/* ========= RIGHT PANEL (PRODUCTS LIST) =========
+   - Scrollable list of additional products
+*/
+.right-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  background: #FFDD88;
+  padding: 10px;
+  border-radius: 18px;
+  text-align: center;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+.right-container h3 {
+  color: #8B5E3C;
+  margin-bottom: 20px;
+}
+/* Scrollable products list in right panel */
+.products-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  max-height: 100%;
+  padding-right: 5px;
+  box-sizing: border-box;
+}
+/* Right-panel product item (reuses similar styling) */
+.product-item {
+  background: #FFF3CD;
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.product-item img {
+  width: 100%;
+  max-height: 100%;
+  border-radius: 5px;
+  object-fit: cover;
+  margin-bottom: 25px;
+}
+.product-item h4,
+.product-item p {
+  margin: 0;
+}
+
+/* ========= QUALITY STANDARDS TABLE =========
+   - Responsive, styled data table for quality metrics
+*/
+.quality-table-container {
+  overflow-x: auto;
+  margin-top: 1.5rem;
+}
+.quality-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+  font-size: 15px;
+}
+.quality-table thead {
+  background: #E6A400;
+  color: white;
+}
+.quality-table th,
+.quality-table td {
+  border: 1px solid #E6A400;
+  padding: 6px 8px;
+  text-align: center;
+}
+.quality-table tbody tr:nth-child(even) {
+  background: #FFFBE6;
+}
+.quality-table tbody tr:hover {
+  background: #FFECB3;
+}

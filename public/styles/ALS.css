@@ -1,0 +1,461 @@
+/* ========= BASIC RESET =========
+   - Apply border-box sizing and remove default margins/padding
+*/
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ========= BODY & LAYOUT =========
+   - Set up overall page layout and background
+*/
+body {
+  font-family: Arial, sans-serif;
+  background-color: #FFF7D4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* ========= MAIN CONTAINER =========
+   - Wrapper for central content sections
+*/
+.main-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 30px;
+  width: 100%;
+  padding: 30px;
+}
+
+/* ========= FORM & TABLE CONTAINERS =========
+   - Shared styling for form and table sections
+*/
+.form-container,
+.table-container {
+  background: #fff;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  width: 65%;
+}
+
+/* ========= TYPOGRAPHY =========
+   - Headings and form label styles
+*/
+h2 {
+  color: #5A3E2B;
+  text-align: center;
+}
+form label {
+  display: block;
+  margin-top: 15px;
+  color: #333;
+}
+
+/* ========= SELECT INPUTS =========
+   - Dropdown menu styling
+*/
+select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 1em;
+}
+
+/* ========= ALERT BOX =========
+   - Notification box design
+*/
+.alert-box {
+  background: #fff5cc;
+  border-left: 6px solid #ffa500;
+  padding: 15px;
+  margin-top: 15px;
+  border-radius: 6px;
+  white-space: pre-line;
+  font-size: 1em;
+  color: #333;
+  min-height: 100px;
+}
+
+/* ========= BUTTONS =========
+   - Primary buttons and hover effect
+*/
+button {
+  margin-top: 20px;
+  background: #FFA500;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+button:hover {
+  background: #e69500;
+}
+
+/* ========= TABLE STYLING =========
+   - Default table layout and header colors
+*/
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+th,
+td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+th {
+  background-color: #d18e00;
+  color: #fff;
+}
+
+/* ========= CONFIRMATION MODAL =========
+   - Overlay and dialog box for confirmations
+*/
+#confirmModal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+#confirmModal .modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+#confirmModal h3 {
+  color: #4d2e00;
+  margin-bottom: 12px;
+}
+#confirmModal p {
+  color: #222;
+  margin-bottom: 20px;
+}
+#confirmModal .modal-content button {
+  margin: 10px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+#confirmModal .btn-si {
+  background: #d9534f;
+  color: white;
+}
+#confirmModal .btn-no {
+  background: #6c757d;
+  color: white;
+  width: 150px;
+}
+
+/* ========= SIDEBAR MENU =========
+   - Fixed left navigation panel
+*/
+.sidebar {
+  width: 200px;
+  background-color: #E6A400;
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+/* Logo inside the sidebar */
+.sidebar img {
+  width: 240px;
+  margin-bottom: 30px;
+}
+
+/* Menu buttons */
+.menu-button {
+  color: white;
+  background-color: transparent;
+  font-weight: bold;
+  border: none;
+  font-size: 16px;
+  margin: 10px 0;
+  padding: 12px 20px;
+  width: 90%;
+  text-align: left;
+  border-radius: 10px;
+  transition: background-color 0.3s, transform 0.2s;
+  cursor: pointer;
+}
+.menu-button:hover {
+  background-color: #D18C00;
+  transform: translateX(5px);
+}
+
+/* Logout button at bottom */
+.logout {
+  margin-top: 130%;
+  font-weight: bold;
+  background-color: #D18C00;
+  color: white;
+  padding: 12px 20px;
+  width: 90%;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.logout:hover {
+  background-color: rgb(204, 173, 0);
+}
+
+/* ========= HEADER & FILTER =========
+   - Page title and search/filter controls
+*/
+h1 {
+  color: #4A3828;
+  font-size: 28px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+.filter-section {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto 20px;
+  display: flex;
+  gap: 10px;
+}
+.filter-section input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #D18C00;
+  border-radius: 6px;
+  font-size: 16px;
+  background-color: #FFF;
+}
+.filter-section button {
+  padding: 12px 20px;
+  background-color: #D18C00;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.filter-section button:hover {
+  background-color: #D19200;
+}
+
+/* ========= EXTENDED TABLE CONTAINER =========
+   - Enhanced styling for large, scrollable tables
+*/
+.table-container {
+  background: #FFDE8B;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  overflow-x: auto;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.table-container table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #FFF;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.table-container th,
+.table-container td {
+  padding: 12px 15px;
+  border: 1px solid #E0C18F;
+  text-align: center;
+}
+.table-container th {
+  background-color: #D18C00;
+  color: #FFF;
+}
+.table-container tr:nth-child(even) {
+  background-color: #FFF8E5;
+}
+.table-container tr:hover {
+  background-color: #FFECB3;
+}
+
+/* ========= ACTION BUTTONS =========
+   - Table row controls: edit, delete, cancel, save
+*/
+.btn {
+  margin: 5px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.btn.edit   { background-color: #ffda7e; }
+.btn.delete { background-color: #dc3545; color: white; }
+.btn.cancel { background-color: #6c757d; color: white; }
+.btn.save   { background-color: #28a745; color: white; }
+
+/* ========= FOOTER =========
+   - Page footer and links
+*/
+.footer {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #4A3828;
+  text-align: center;
+}
+.footer a {
+  color: #8B5E3C;
+  text-decoration: none;
+  transition: text-decoration 0.2s;
+}
+.footer a:hover {
+  text-decoration: underline;
+}
+
+/* ========= EDIT MODAL =========
+   - Modal dialog for inline editing
+*/
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0; /* shorthand for top/right/bottom/left: 0 */
+  background: rgba(0,0,0,0.5);
+  z-index: 999;
+  justify-content: center;
+  align-items: center;
+}
+.modal-box {
+  background: #FFF;
+  padding: 28px 34px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 440px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  animation: fadeIn .3s ease-in-out;
+}
+.modal-box h3 {
+  color: #4A3828;
+  margin-bottom: 18px;
+  text-align: center;
+}
+.modal-box label {
+  display: block;
+  font-size: 14px;
+  color: #4A3828;
+  margin-bottom: 12px;
+}
+.modal-box input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #D18C00;
+  border-radius: 6px;
+  font-size: 15px;
+  margin-top: 4px;
+}
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+.btn.save   { background: #28A745; color: #FFF; flex: 1; }
+.btn.cancel { background: #6c757d; color: #FFF; flex: 1; }
+
+  /* Reuse confirmModal styling for success notification */
+  #successModal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+  }
+  #successModal .modal-content {
+    background: #FFF;
+    padding: 28px 34px;
+    border-radius: 12px;
+    width: 90%; max-width: 440px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.25);
+    text-align: center;
+  }
+  #successModal h3 {
+    color: #28a745;
+    margin-bottom: 12px;
+  }
+  #successModal p {
+    color: #333;
+    margin-bottom: 20px;
+  }
+  #successModal .btn-ok {
+    background: #28a745;
+    color: #FFF;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+
+
+#errorModal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+  }
+  #errorModal .modal-content {
+    background: #FFF;
+    padding: 28px 34px;
+    border-radius: 12px;
+    width: 90%; max-width: 440px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.25);
+    text-align: center;
+  }
+  #errorModal h3 {
+    color: #d9534f;
+    margin-bottom: 12px;
+  }
+  #errorModal p {
+    color: #333;
+    margin-bottom: 20px;
+  }
+  #errorModal .btn-ok {
+    background: #d9534f;
+    color: #FFF;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+  }

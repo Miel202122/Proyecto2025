@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- ========= DOCUMENT METADATA ========= -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Registro de Usuario</title>
+    <link rel="icon" sizes="48x48" type="image/png" href="/img/LogoP.png">
+    <!-- Link to stylesheet for registration forms -->
+    <link rel="stylesheet" href="/styles/RS.css">
+</head>
+<body>
+    <!-- ========= MAIN REGISTRATION CONTAINER ========= -->
+    <div class="login-container">
+        <!-- Page heading in Spanish -->
+        <h2>Registro de Usuario</h2>
+        <!-- User registration form -->
+        <form id="registroForm">
+            <!-- Full name input field -->
+            <div class="form-group">
+                <label for="name">Nombre completo</label>
+                <input type="text" id="name" name="name" required placeholder="Ingrese su nombre completo">
+            </div>
+            <!-- Email input field -->
+            <div class="form-group">
+                <label for="mail">Correo electrónico</label>
+                <input type="email" id="mail" name="mail" required placeholder="Ingrese su correo electrónico">
+            </div>
+            <!-- Password input field -->
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" name="password" required placeholder="Ingrese una contraseña">
+            </div>
+            <!-- Cellphone input field -->
+            <div class="form-group">
+                <label for="cellphone">Celular</label>
+                <input type="tel" id="cellphone" name="cellphone" placeholder="Ingrese su número de celular">
+            </div>
+            <!-- Role selection dropdown -->
+            <div class="form-group">
+                <label for="role">Rol</label>
+                <select id="role" name="role" required>
+                    <option value="">Seleccione un rol</option>
+                    <option value="admin">Administrador</option>
+                    <option value="beekeeper">Apicultor</option>
+                </select>
+            </div>
+            <!-- Submit button -->
+            <button type="submit" class="btn">Registrar</button>
+        </form>
+
+        <!-- Link to login page -->
+        <div class="footer">
+            <p>¿Ya tienes una cuenta? <a href="/" class="link">Inicia sesión</a></p>
+        </div>
+    </div>
+
+    <!-- ========= MODAL DIALOG ========= -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <!-- Modal title element -->
+            <h3 id="modal-title">¡Éxito!</h3>
+            <!-- Modal message element -->
+            <p id="modal-message">Usuario registrado correctamente</p>
+            <!-- Close button for modal -->
+            <button onclick="closeModal()">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- ========= CLIENT-SIDE SCRIPT ========= -->
+    <script>
+        // Handle registration form submission
+        document.getElementById('registroForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            // Gather form data into an object
+            const formData = {
+                name:      document.getElementById('name').value,
+                mail:      document.getElementById('mail').value,
+                password:  document.getElementById('password').value,
+                cellphone: document.getElementById('cellphone').value,
+                role:      document.getElementById('role').value
+            };
+
+            try {
+                // Send POST request to registration endpoint
+                const response = await fetch('/registrar_usuario', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                // Parse JSON response
+                const result = await response.json();
+
+                // Update modal content based on response
+                const titleEl = document.getElementById('modal-title');
+                const msgEl   = document.getElementById('modal-message');
+                if (result.success) {
+                    titleEl.textContent = '✅ ¡Registro exitoso!';
+                    msgEl.textContent   = result.message;
+                    document.getElementById('registroForm').reset();
+                } else {
+                    titleEl.textContent = '❌ Error';
+                    msgEl.textContent   = result.message;
+                }
+                // Show modal dialog
+                document.getElementById('modal').style.display = 'flex';
+            } catch (error) {
+                // Handle unexpected errors
+                console.error(error);
+                document.getElementById('modal-title').textContent   = '❌ Error';
+                document.getElementById('modal-message').textContent = 'No se pudo enviar el formulario.';
+                document.getElementById('modal').style.display       = 'flex';
+            }
+        });
+
+        // Function to close the modal dialog
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+    </script>
+  <script src="/js/validate-forms.js"></script>
+  <script>
+    window.userRole = "<%= (typeof currentUser !== 'undefined' && currentUser && currentUser.role) ? currentUser.role : 'guest' %>";
+  </script>
+  <script src="/js/disable-nav.js"></script>
+
+</body>
+</html>

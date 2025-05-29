@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- ========= DOCUMENT METADATA ========= -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Reportes de Cosecha</title>
+  <link rel="icon" sizes="48x48" type="image/png" href="/img/LogoP.png">
+  <!-- Link to custom stylesheet for harvest reports -->
+  <link rel="stylesheet" href="/styles/HRS.css">
+  <!-- External libraries for charts and PDF generation -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    /* Align table text to the left */
+    .table-container th,
+    .table-container td {
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <!-- ========= SIDEBAR NAVIGATION ========= -->
+  <div class="sidebar">
+    <!-- Logo at top of sidebar -->
+    <img src="/img/Logo.png" alt="Logo" />
+    <!-- Navigation buttons -->
+    <button class="menu-button" onclick="window.location.href='/Main'">Inicio</button>
+    <button class="menu-button" onclick="window.location.href='/User'">Usuarios</button>
+    <button class="menu-button" onclick="window.location.href='/agregarProducto'">Productos</button>
+    <button class="menu-button" onclick="window.location.href='/Apiarie'">Zonas</button>
+    <button class="menu-button" onclick="window.location.href='/Harvest'">Cosechas</button>
+    <button class="menu-button" onclick="window.location.href='/QualityH'">Calidad</button>
+    <button class="menu-button" onclick="window.location.href='/Standar'">Estandares</button>
+    <!-- Logout button -->
+    <button class="logout" onclick="window.location.href='/logout'">Salir</button>
+  </div>
+
+  <!-- ========= DELETE CONFIRMATION MODAL ========= -->
+  <div id="confirmDeleteModal" class="modal">
+    <div class="modal-box">
+      <!-- Confirmation header -->
+      <h3>¿Eliminar reporte?</h3>
+      <p>¿Estás seguro de que deseas eliminar este reporte?</p>
+      <!-- Action buttons -->
+      <div class="modal-actions">
+        <button class="btn delete" onclick="confirmDelete()">Sí, eliminar</button>
+        <button class="btn cancel" onclick="cancelDelete()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========= SUCCESS MODAL ========= -->
+  <div id="saveSuccessModal" class="modal-success">
+    <div class="modal-box">
+      <!-- Success message -->
+      <h3>¡Registro exitoso!</h3>
+      <p>Reporte registrado correctamente</p>
+      <button class="btn save" onclick="closeSaveSuccess()">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- ========= MAIN CONTENT ========= -->
+  <div class="main-container">
+    <!-- Form container for new report registration -->
+    <div class="form-container">
+      <h2>Registrar Reporte de Cosecha 🐝</h2>
+      <!-- Report registration form -->
+      <form id="reportForm">
+        <!-- Harvest selection dropdown -->
+        <div class="form-group">
+          <label for="id_harvest">Cosecha</label>
+          <select id="id_harvest" required></select>
+        </div>
+
+        <!-- Metrics section: chart and inputs -->
+        <div id="metrics-section">
+          <!-- Canvas for metrics chart -->
+          <canvas id="metricsChart"></canvas>
+          <!-- Input groups for averaged metrics -->
+          <div class="flex-inputs">
+            <div class="form-group">
+              <label>Δ Humedad (avg)</label>
+              <input id="moisture_diff" readonly>
+            </div>
+            <div class="form-group">
+              <label>Δ Acidez (avg)</label>
+              <input id="acidity_diff" readonly>
+            </div>
+          </div>
+          <div class="flex-inputs">
+            <div class="form-group">
+              <label>Δ HMF (avg)</label>
+              <input id="HMF_diff" readonly>
+            </div>
+            <div class="form-group">
+              <label>Δ Diastasa (avg)</label>
+              <input id="diastase_diff" readonly>
+            </div>
+          </div>
+          <!-- Alerts count and auto-generated description -->
+          <div class="form-group">
+            <label>Total Alertas</label>
+            <input id="alerts_count" readonly>
+          </div>
+          <div class="form-group">
+            <label>Descripción automática</label>
+            <textarea id="description" rows="3" readonly></textarea>
+          </div>
+        </div>
+
+        <!-- Recommendations textarea -->
+        <div class="form-group">
+          <label for="recommendations">Recomendaciones</label>
+          <textarea id="recommendations" rows="3"></textarea>
+        </div>
+
+        <!-- Submit button -->
+        <button type="submit" class="btn save">Guardar Reporte</button>
+      </form>
+    </div>
+
+    <!-- Table container for displaying existing reports -->
+    <div class="table-container">
+      <h2>Reportes Registrados</h2>
+      <table id="reportsPDFTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Cosecha</th>
+            <th>Δ Humedad</th>
+            <th>Δ Acidez</th>
+            <th>Δ HMF</th>
+            <th>Δ Diastasa</th>
+            <th>Alertas</th>
+            <th>Descripción</th>
+            <th>Recomendaciones</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="reportsTable"></tbody>
+      </table>
+      
+    </div>
+    <!-- Link back to quality page -->
+    <div class="footer">
+      <p><a href="/QualityH">Volver</a></p>
+    </div>
+  </div>
+
+  <!-- ========= CLIENT-SIDE SCRIPT ========= -->
+  <script>
+    // Grab references to DOM elements
+    const harvestSelect  = document.getElementById('id_harvest');
+    const metricsSection = document.getElementById('metrics-section');
+    const ctx            = document.getElementById('metricsChart').getContext('2d');
+    const mInput         = document.getElementById('moisture_diff');
+    const aInput         = document.getElementById('acidity_diff');
+    const hInput         = document.getElementById('HMF_diff');
+    const dInput         = document.getElementById('diastase_diff');
+    const alertsInput    = document.getElementById('alerts_count');
+    const descInput      = document.getElementById('description');
+    const recInput       = document.getElementById('recommendations');
+    const tableBody      = document.getElementById('reportsTable');
+
+    let qualities = [], alerts = [], chart, toDeleteId = null, currentReports = [];
+
+    // Initialize data and event listeners on page load
+    window.onload = async () => {
+      const [hRes, qRes, aRes] = await Promise.all([
+        fetch('/cosechas'),
+        fetch('/calidades'),
+        fetch('/alertas-calidad')
+      ]);
+      const harvests = (await hRes.json()).data;
+      qualities = (await qRes.json()).data;
+      alerts    = (await aRes.json()).data;
+
+      // Populate harvest dropdown
+      harvestSelect.innerHTML = '<option value="">Seleccione...</option>';
+      harvests.forEach(h =>
+        harvestSelect.innerHTML += `<option value="${h.id}">#${h.id} – ${h.harvest_date}</option>`
+      );
+
+      // Bind change and submit events
+      harvestSelect.addEventListener('change', updateMetrics);
+      document.getElementById('reportForm').addEventListener('submit', saveReport);
+
+      // Initialize the chart and load existing reports
+      initChart();
+      loadReports();
+    };
+
+    // Initialize empty bar chart
+    function initChart() {
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Humedad','Acidez','HMF','Diastasa'],
+          datasets: [{
+            label: 'Promedio',
+            data: [0,0,0,0],
+            backgroundColor: '#E6A400',
+            borderColor: '#C18F00',
+            borderWidth: 1
+          }]
+        },
+        options: { scales:{ y:{ beginAtZero:true } } }
+      });
+    }
+
+    // Update metrics inputs and chart when a harvest is selected
+    function updateMetrics() {
+      const hid = harvestSelect.value;
+      if (!hid) return metricsSection.classList.remove('visible');
+
+      // Filter quality records for selected harvest
+      const recs = qualities.filter(q => q.id_harvest == hid);
+      if (!recs.length) return metricsSection.classList.remove('visible');
+
+      // Compute averages
+      const avg = (arr, k) => arr.reduce((t,x) => t + parseFloat(x[k]), 0) / arr.length;
+      const M = avg(recs,'humidity'),
+            A = avg(recs,'acidity'),
+            H = avg(recs,'HMF'),
+            D = avg(recs,'diastase');
+
+      // Populate metric inputs
+      mInput.value = M.toFixed(2);
+      aInput.value = A.toFixed(2);
+      hInput.value = H.toFixed(2);
+      dInput.value = D.toFixed(2);
+
+      // Count related alerts and build description
+      const relatedIds = recs.map(r => r.id);
+      const relAlerts = alerts.filter(a => relatedIds.includes(a.id_honey_quality));
+      alertsInput.value = relAlerts.length;
+      descInput.value   = relAlerts.map(a => `${a.alert_date}: ${a.message}`).join('\n');
+
+      // Update chart data and show metrics section
+      chart.data.datasets[0].data = [M, A, H, D];
+      chart.update();
+      metricsSection.classList.add('visible');
+    }
+
+    // Handle saving a new report
+    async function saveReport(e) {
+      e.preventDefault();
+      const body = {
+        id_harvest:      harvestSelect.value,
+        description:     descInput.value,
+        recommendations: recInput.value,
+        alerts:          +alertsInput.value,
+        moisture_diff:   +mInput.value,
+        acidity_diff:    +aInput.value,
+        HMF_diff:        +hInput.value,
+        diastase_diff:   +dInput.value
+      };
+      const res = await fetch('/harvest_reports', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(body)
+      });
+      if (res.ok) {
+        document.getElementById('saveSuccessModal').style.display = 'flex';
+      } else {
+        alert('Error al registrar');
+      }
+    }
+
+    // Close success modal and reload table
+    function closeSaveSuccess() {
+      document.getElementById('saveSuccessModal').style.display = 'none';
+      loadReports();
+    }
+
+    // Load existing reports into table
+    async function loadReports() {
+      const res = await fetch('/harvest_reports');
+      const data = (await res.json()).data;
+      currentReports = data;
+      tableBody.innerHTML = data.map(r => `
+        <tr>
+          <td>${r.id}</td>
+          <td>${r.id_harvest}</td>
+          <td>${r.moisture_diff.toFixed(2)}</td>
+          <td>${r.acidity_diff.toFixed(2)}</td>
+          <td>${r.HMF_diff.toFixed(2)}</td>
+          <td>${r.diastase_diff.toFixed(2)}</td>
+          <td>${r.alerts}</td>
+          <td>${r.description.replaceAll('\n','<br>')}</td>
+          <td>${r.recommendations || ''}</td>
+          <td>
+            <button class="btn primary" onclick="generatePDFFor(${r.id})">PDF</button>
+            <button class="btn delete" onclick="askDelete(${r.id})">🗑️</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Show delete confirmation modal
+    function askDelete(id) {
+      toDeleteId = id;
+      document.getElementById('confirmDeleteModal').style.display = 'flex';
+    }
+    // Cancel deletion
+    function cancelDelete() {
+      toDeleteId = null;
+      document.getElementById('confirmDeleteModal').style.display = 'none';
+    }
+    // Confirm and perform deletion
+    async function confirmDelete() {
+      await fetch(`/harvest_reports/${toDeleteId}`, { method:'DELETE' });
+      document.getElementById('confirmDeleteModal').style.display = 'none';
+      loadReports();
+    }
+
+    // Generate and download PDF for a specific report
+    function generatePDFFor(id) {
+      const record = currentReports.find(r => r.id === id);
+      if (!record) return;
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit:'pt', format:'letter' });
+
+      // Title and basic info
+      doc.setFontSize(18);
+      doc.text('Reporte de Cosecha', 40, 40);
+      doc.setFontSize(12);
+      doc.text(`ID: ${record.id}`, 40, 70);
+      doc.text(`Cosecha: ${record.id_harvest}`, 40, 90);
+
+      // Metrics table
+      doc.autoTable({
+        startY: 110,
+        head: [['Métrica','Valor']],
+        body: [
+          ['Δ Humedad', record.moisture_diff.toFixed(2)],
+          ['Δ Acidez',  record.acidity_diff.toFixed(2)],
+          ['Δ HMF',     record.HMF_diff.toFixed(2)],
+          ['Δ Diastasa',record.diastase_diff.toFixed(2)],
+          ['Alertas',   record.alerts]
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: [209,140,0] }
+      });
+
+      // Recommendations text
+      const recY = doc.lastAutoTable.finalY + 20;
+      doc.setFontSize(12);
+      const recLines = doc.splitTextToSize(`Recomendaciones:\n${record.recommendations || 'N/A'}`, 500);
+      doc.text(recLines, 40, recY);
+
+      // Centered bar chart image
+      const chartWidth = 400, chartHeight = 200;
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const xCenter = (pageWidth - chartWidth) / 2;
+      const canvas = document.createElement('canvas');
+      canvas.width = chartWidth;
+      canvas.height = chartHeight;
+      const ctx2 = canvas.getContext('2d');
+      new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels: ['Humedad','Acidez','HMF','Diastasa'],
+          datasets: [{ data: [
+            record.moisture_diff,
+            record.acidity_diff,
+            record.HMF_diff,
+            record.diastase_diff
+          ], backgroundColor: '#E6A400' }]
+        },
+        options: { responsive:false, animation:false, plugins:{ legend:{display:false} }, scales:{ y:{beginAtZero:true} } }
+      });
+      const imgData = canvas.toDataURL('image/png');
+      doc.addImage(imgData, 'PNG', xCenter, recY + recLines.length * 14 + 20, chartWidth, chartHeight);
+
+      // Trigger download
+      doc.save(`reporte_${record.id}.pdf`);
+    }
+  </script>
+  <script src="/js/validate-forms.js"></script>
+  <script>
+    window.userRole = "<%= (typeof currentUser !== 'undefined' && currentUser && currentUser.role) ? currentUser.role : 'guest' %>";
+  </script>
+  <script src="/js/disable-nav.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- ========= DOCUMENT METADATA ========= -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Actualizar Contraseña</title>
+  <link rel="icon" sizes="48x48" type="image/png" href="/img/LogoP.png">
+  <!-- Link to shared stylesheet for login/update forms -->
+  <link rel="stylesheet" href="/styles/LS.css">
+</head>
+<body>
+  <!-- ========= MAIN FORM CONTAINER ========= -->
+  <div class="login-container">
+    <!-- Page heading in Spanish -->
+    <h2>Actualizar Contraseña</h2>
+    <!-- Password update form -->
+    <form id="updateForm">
+      <!-- Username input field -->
+      <div class="form-group">
+        <label for="username">Usuario</label>
+        <input type="text" id="username" name="username" required placeholder="Ingrese su usuario">
+      </div>
+      <!-- Email input field -->
+      <div class="form-group">
+        <label for="email">Correo electrónico</label>
+        <input type="email" id="email" name="email" required placeholder="Ingrese su correo">
+      </div>
+      <!-- Phone input field -->
+      <div class="form-group">
+        <label for="cellphone">Teléfono</label>
+        <input type="tel" id="cellphone" name="cellphone" required placeholder="Ingrese su teléfono">
+      </div>
+      <!-- New password input field -->
+      <div class="form-group">
+        <label for="newPassword">Nueva contraseña</label>
+        <input type="password" id="newPassword" name="newPassword" required placeholder="Ingrese nueva contraseña">
+      </div>
+      <!-- Confirm password input field -->
+      <div class="form-group">
+        <label for="confirmPassword">Confirmar contraseña</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Confirme nueva contraseña">
+      </div>
+      <!-- Submit button -->
+      <button type="submit" class="btn">Confirmar contraseña</button>
+    </form>
+    <!-- Footer link back to home -->
+    <div class="footer">
+      <p><a href="/">Volver</a></p>
+    </div>
+  </div>
+
+  <!-- ========= MODAL DIALOG ========= -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <!-- Modal title element -->
+      <h3 id="modal-title"></h3>
+      <!-- Modal message element -->
+      <p id="modal-message"></p>
+      <!-- Close button for modal -->
+      <button onclick="closeModal()">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- ========= CLIENT-SIDE SCRIPT ========= -->
+  <script>
+    // Handle form submission for password update
+    document.getElementById('updateForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      // Retrieve form values
+      const username = document.getElementById('username').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const cellphone = document.getElementById('cellphone').value.trim();
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const titleEl = document.getElementById('modal-title');
+      const msgEl = document.getElementById('modal-message');
+
+      // Validate that passwords match
+      if (newPassword !== confirmPassword) {
+        titleEl.textContent = '❌ Error';
+        msgEl.textContent = 'Las contraseñas no coinciden.';
+        return showModal();
+      }
+
+      try {
+        // Send POST request to update password endpoint
+        const response = await fetch('/actualizar_contrasena', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email, cellphone, newPassword })
+        });
+        const data = await response.json();
+        // Update modal based on API response
+        titleEl.textContent = data.success ? '✅ Éxito' : '❌ Error';
+        msgEl.textContent = data.message;
+      } catch (error) {
+        console.error(error);
+        titleEl.textContent = '❌ Error';
+        msgEl.textContent = 'No se pudo conectar al servidor.';
+      }
+      showModal();
+    });
+
+    // Show modal dialog
+    function showModal() {
+      document.getElementById('modal').style.display = 'flex';
+    }
+    // Close modal dialog
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+  </script>
+  <script src="/js/validate-forms.js"></script>
+  <script>
+    window.userRole = "<%= (typeof currentUser !== 'undefined' && currentUser && currentUser.role) ? currentUser.role : 'guest' %>";
+  </script>
+  <script src="/js/disable-nav.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- ========= DOCUMENT METADATA ========= -->
+  <meta charset="UTF-8">
+  <title>Registro de Cosecha</title>
+  <link rel="icon" sizes="48x48" type="image/png" href="/img/LogoP.png">
+  <link rel="stylesheet" href="/styles/AS.css">
+</head>
+<body>
+  <!-- ========= SIDEBAR NAVIGATION ========= -->
+  <div class="sidebar">
+    <!-- Logo at top of sidebar -->
+    <img src="/img/Logo.png" alt="Logo" />
+    <!-- Navigation buttons -->
+    <button class="menu-button" onclick="window.location.href='/Main'">Inicio</button>
+    <button class="menu-button" onclick="window.location.href='/User'">Usuarios</button>
+    <button class="menu-button" onclick="window.location.href='/agregarProducto'">Productos</button>
+    <button class="menu-button" onclick="window.location.href='/Apiarie'">Zonas</button>
+    <button class="menu-button" onclick="window.location.href='/Harvest'">Cosechas</button>
+    <button class="menu-button" onclick="window.location.href='/QualityH'">Calidad</button>
+    <button class="menu-button" onclick="window.location.href='/Standar'">Estándares</button>
+    <!-- Logout button at bottom -->
+    <button class="logout" onclick="window.location.href='/logout'">Salir</button>
+  </div>
+
+  <!-- ========= HARVEST REGISTRATION FORM ========= -->
+  <div class="form-container">
+    <!-- Form heading -->
+    <h2>Registrar Nueva Cosecha</h2>
+    <!-- Harvest registration form -->
+    <form id="harvestForm">
+      <!-- Harvest date input -->
+      <div class="form-group">
+        <label for="harvest_date">Fecha de Cosecha</label>
+        <input type="date" id="harvest_date" name="harvest_date" required>
+      </div>
+      <!-- Volume input -->
+      <div class="form-group">
+        <label for="volume_kg">Volumen (kg)</label>
+        <input type="number" id="volume_kg" name="volume_kg" step="0.01" min="0" required>
+      </div>
+      <!-- Flowering type input -->
+      <div class="form-group">
+        <label for="flowering_type">Tipo de Floración</label>
+        <input type="text" id="flowering_type" name="flowering_type" maxlength="100" required>
+      </div>
+      <!-- Temperature input -->
+      <div class="form-group">
+        <label for="Temperature">Temperatura (°C)</label>
+        <input type="number" id="Temperature" name="Temperature" step="0.01" required>
+      </div>
+      <!-- Humidity input -->
+      <div class="form-group">
+        <label for="humidity">Humedad (%)</label>
+        <input type="number" id="humidity" name="humidity" step="0.01" required>
+      </div>
+      <!-- Apiary select (populated via JS) -->
+      <div class="form-group">
+        <label for="id_apiarie">Apiario</label>
+        <select id="id_apiarie" name="id_apiarie" required>
+          <option value="">Cargando apiarios…</option>
+        </select>
+      </div>
+      <!-- Submit button -->
+      <button type="submit" class="btn">Registrar Cosecha</button>
+    </form>
+    <!-- Link to view existing harvests -->
+    <div class="footer">
+      <p><a href="/VHarvest">Ver Cosechas</a></p>
+    </div>
+  </div>
+
+  <!-- ========= RESPONSE MODAL ========= -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <!-- Modal title and message -->
+      <h3 id="modal-title">✅ ¡Éxito!</h3>
+      <p id="modal-message">Cosecha registrada correctamente.</p>
+      <!-- Close button -->
+      <button onclick="closeModal()">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- ========= CLIENT-SIDE SCRIPT ========= -->
+  <script>
+    // Populate apiary dropdown after DOM loads
+    document.addEventListener('DOMContentLoaded', () => {
+      loadApiaries();
+      document.getElementById('harvestForm').addEventListener('submit', submitForm);
+    });
+
+    // Fetch apiaries and fill the select element
+    async function loadApiaries() {
+      const select = document.getElementById('id_apiarie');
+      try {
+        const res = await fetch('/apiarios');
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          select.innerHTML = '<option value="">Seleccione apiario…</option>';
+          json.data.forEach(a => {
+            const opt = document.createElement('option');
+            opt.value = a.id;
+            opt.textContent = `#${a.id} – ${a.name}`;
+            select.appendChild(opt);
+          });
+        } else {
+          select.innerHTML = '<option value="">No hay apiarios</option>';
+        }
+      } catch (err) {
+        console.error('Error loading apiaries:', err);
+        select.innerHTML = '<option value="">Error cargando apiarios</option>';
+      }
+    }
+
+    // Handle form submission to register harvest
+    async function submitForm(e) {
+      e.preventDefault();
+      // Gather form data
+      const data = {
+        harvest_date:    document.getElementById('harvest_date').value,
+        volume_kg:       parseFloat(document.getElementById('volume_kg').value),
+        flowering_type:  document.getElementById('flowering_type').value,
+        Temperature:     parseFloat(document.getElementById('Temperature').value),
+        humidity:        parseFloat(document.getElementById('humidity').value),
+        id_apiarie:      parseInt(document.getElementById('id_apiarie').value)
+      };
+
+      try {
+        // Send POST request to API
+        const response = await fetch('/agregar-cosecha', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await response.json();
+
+        // Update modal with server response
+        document.getElementById('modal-title').textContent = result.success
+          ? '✅ ¡Registro exitoso!'
+          : '❌ Error';
+        document.getElementById('modal-message').textContent = result.message;
+        document.getElementById('modal').style.display = 'flex';
+
+        // Reset form on success
+        if (result.success) {
+          document.getElementById('harvestForm').reset();
+        }
+      } catch (error) {
+        // Handle network or unexpected errors
+        document.getElementById('modal-title').textContent = '❌ Error';
+        document.getElementById('modal-message').textContent = 'No se pudo registrar la cosecha.';
+        document.getElementById('modal').style.display = 'flex';
+        console.error(error);
+      }
+    }
+
+    // Function to close the modal
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+  </script>
+  <script src="/js/validate-forms.js"></script>
+  <script>
+    window.userRole = "<%= (typeof currentUser !== 'undefined' && currentUser && currentUser.role) ? currentUser.role : 'guest' %>";
+  </script>
+  <script src="/js/disable-nav.js"></script>
+
+</body>
+</html>

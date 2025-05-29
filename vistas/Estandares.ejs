@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- ========= DOCUMENT METADATA ========= -->
+  <meta charset="UTF-8">
+  <title>Registro de Estándares de Calidad</title>
+  <link rel="icon" href="/img/LogoP.png" sizes="48x48" type="image/png">
+  <!-- Link to shared stylesheet for standards form -->
+  <link rel="stylesheet" href="/styles/ES.css">
+</head>
+<body>
+  <!-- ========= SIDEBAR NAVIGATION ========= -->
+  <div class="sidebar">
+    <!-- Logo -->
+    <img src="/img/Logo.png" alt="Logo" />
+    <!-- Navigation buttons -->
+    <button class="menu-button" onclick="window.location.href='/Main'">Inicio</button>
+    <button class="menu-button" onclick="window.location.href='/User'">Usuarios</button>
+    <button class="menu-button" onclick="window.location.href='/agregarProducto'">Productos</button>
+    <button class="menu-button" onclick="window.location.href='/Apiarie'">Zonas</button>
+    <button class="menu-button" onclick="window.location.href='/Harvest'">Cosechas</button>
+    <button class="menu-button" onclick="window.location.href='/QualityH'">Calidad</button>
+    <button class="menu-button" onclick="window.location.href='/Standar'">Estándares</button>
+    <!-- Logout button -->
+    <button class="logout" onclick="window.location.href='/logout'">Salir</button>
+  </div>
+
+  <!-- ========= FORM CONTAINER ========= -->
+  <div class="form-container">
+    <!-- Heading for the form -->
+    <h2>Registrar Nuevo Estándar</h2>
+    <!-- Standards registration form -->
+    <form id="standardsForm">
+      <!-- Standard name -->
+      <div class="form-group">
+        <label for="name">Nombre del estándar</label>
+        <input type="text" id="name" name="name" maxlength="50" required>
+      </div>
+      <!-- Maximum moisture -->
+      <div class="form-group">
+        <label for="max_moisture">Humedad máxima (%)</label>
+        <input type="number" id="max_moisture" name="max_moisture" step="0.01" min="0" required>
+      </div>
+      <!-- Minimum moisture -->
+      <div class="form-group">
+        <label for="min_moisture">Humedad mínima (%)</label>
+        <input type="number" id="min_moisture" name="min_moisture" step="0.01" min="0" required>
+      </div>
+      <!-- Maximum acidity -->
+      <div class="form-group">
+        <label for="max_acidity">Acidez máxima (meq/kg)</label>
+        <input type="number" id="max_acidity" name="max_acidity" step="0.01" min="0" required>
+      </div>
+      <!-- Minimum acidity -->
+      <div class="form-group">
+        <label for="min_acidity">Acidez mínima (meq/kg)</label>
+        <input type="number" id="min_acidity" name="min_acidity" step="0.01" min="0" required>
+      </div>
+      <!-- Maximum HMF -->
+      <div class="form-group">
+        <label for="max_HMF">HMF máximo (mg/kg)</label>
+        <input type="number" id="max_HMF" name="max_HMF" step="0.01" min="0" required>
+      </div>
+      <!-- Minimum HMF -->
+      <div class="form-group">
+        <label for="min_HMF">HMF mínimo (mg/kg)</label>
+        <input type="number" id="min_HMF" name="min_HMF" step="0.01" min="0" required>
+      </div>
+      <!-- Maximum diastase -->
+      <div class="form-group">
+        <label for="max_diastase">Diastasa máxima (G·g⁻¹)</label>
+        <input type="number" id="max_diastase" name="max_diastase" step="0.01" min="0" required>
+      </div>
+      <!-- Minimum diastase -->
+      <div class="form-group">
+        <label for="min_diastase">Diastasa mínima (G·g⁻¹)</label>
+        <input type="number" id="min_diastase" name="min_diastase" step="0.01" min="0" required>
+      </div>
+      <!-- Submit button -->
+      <button type="submit" class="btn">Registrar Estándar</button>
+    </form>
+    <!-- Link to view existing standards -->
+    <div class="footer">
+      <p><a href="/VStandar">Ver Estándares</a></p>
+    </div>
+  </div>
+
+  <!-- ========= RESPONSE MODAL ========= -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <!-- Modal title and message -->
+      <h3 id="modal-title">✅ ¡Éxito!</h3>
+      <p id="modal-message">Estándar registrado correctamente.</p>
+      <!-- Close button -->
+      <button onclick="closeModal()">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- ========= CLIENT-SIDE SCRIPT ========= -->
+  <script>
+    // Hide modal initially
+    document.getElementById('modal').style.display = 'none';
+
+    // Handle form submission
+    document.getElementById('standardsForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      // Gather form data into an object
+      const data = {
+        name:         document.getElementById('name').value,
+        max_moisture: parseFloat(document.getElementById('max_moisture').value),
+        min_moisture: parseFloat(document.getElementById('min_moisture').value),
+        max_acidity:  parseFloat(document.getElementById('max_acidity').value),
+        min_acidity:  parseFloat(document.getElementById('min_acidity').value),
+        max_HMF:      parseFloat(document.getElementById('max_HMF').value),
+        min_HMF:      parseFloat(document.getElementById('min_HMF').value),
+        max_diastase: parseFloat(document.getElementById('max_diastase').value),
+        min_diastase: parseFloat(document.getElementById('min_diastase').value)
+      };
+
+      try {
+        // Send POST request to API
+        const response = await fetch('/registrar_estandar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await response.json();
+
+        // Update modal with server response
+        document.getElementById('modal-title').textContent = result.success
+          ? '✅ ¡Registro exitoso!'
+          : '❌ Error';
+        document.getElementById('modal-message').textContent = result.message;
+        document.getElementById('modal').style.display = 'flex';
+
+        // Reset form on success
+        if (result.success) {
+          document.getElementById('standardsForm').reset();
+        }
+      } catch (error) {
+        // Handle network or unexpected errors
+        document.getElementById('modal-title').textContent = '❌ Error';
+        document.getElementById('modal-message').textContent = 'No se pudo registrar el estándar.';
+        document.getElementById('modal').style.display = 'flex';
+        console.error(error);
+      }
+    });
+
+    // Function to close the modal
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+  </script>
+  <script src="/js/validate-forms.js"></script>
+  <script>
+    window.userRole = "<%= (typeof currentUser !== 'undefined' && currentUser && currentUser.role) ? currentUser.role : 'guest' %>";
+  </script>
+  <script src="/js/disable-nav.js"></script>
+
+</body>
+</html>

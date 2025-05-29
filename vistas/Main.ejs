@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- ========= DOCUMENT METADATA ========= -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Página de Inicio – Zona Apícola</title>
+  <link rel="icon" sizes="48x48" type="image/png" href="/img/LogoP.png">
+  <!-- Main stylesheet -->
+  <link rel="stylesheet" href="/styles/MS.css">
+
+  <!-- External libraries -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+  <!-- ========= SIDEBAR NAVIGATION ========= -->
+  <div class="sidebar">
+    <img src="/img/Logo.png" alt="Logo" />
+    <button class="menu-button" onclick="window.location.href='/Main'">Inicio</button>
+    <button class="menu-button" onclick="window.location.href='/User'">Usuarios</button>
+    <button class="menu-button" onclick="window.location.href='/agregarProducto'">Productos</button>
+    <button class="menu-button" onclick="window.location.href='/Apiarie'">Zonas</button>
+    <button class="menu-button" onclick="window.location.href='/Harvest'">Cosechas</button>
+    <button class="menu-button" onclick="window.location.href='/QualityH'">Calidad</button>
+    <button class="menu-button" onclick="window.location.href='/Standar'">Estandares</button>
+    <button class="logout" onclick="window.location.href='/logout'">Salir</button>
+  </div>
+
+  <!-- ========= MAIN CONTENT ========= -->
+  <div class="main-container">
+    <!-- ---------- LEFT COLUMN: map + info + quality chart ---------- -->
+    <div class="left-container">
+      <!-- Map container -->
+      <div class="map-container"><div id="map"></div></div>
+
+      <div class="info-chart-container">
+        <!-- Info card -->
+        <div class="data-container">
+          <h2>Zona Apícola</h2>
+          <p><strong>Ubicación:</strong> Norte de Santander, Colombia</p>
+          <p><strong>Producción anual:</strong> 500 t de miel</p>
+          <p><strong>Apicultores activos:</strong> 120</p>
+          <p><strong>Flora predominante:</strong> Acacia, Eucalipto y Trébol</p>
+          <p><strong>Descripción:</strong> Ecosistema rico en flora con alta producción de miel.</p>
+
+          <!-- Image gallery -->
+          <div class="image-gallery">
+            <img src="/img/Apicola.jpg" alt="Zona apícola">
+            <img src="/img/Apicultor.jpg" alt="Apicultores en acción">
+            <img src="/img/Miel.jpg" alt="Producción de miel">
+          </div>
+        </div>
+
+        <!-- Quality chart card -->
+        <div class="quality-chart-container">
+          <h2>Indicadores de Calidad</h2>
+          <canvas id="qualityChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Featured products section -->
+    <div class="featured-products">
+      <h2 class="section-title">Productos Destacados</h2>
+      <div id="products-list" class="products-list"></div>
+    </div>
+
+    <!-- Axios library for API calls -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+      // Load top 3 products on page load
+      const plist = document.getElementById('products-list');
+      async function loadProducts() {
+        try {
+          const res = await axios.get('/api/productos');
+          const productos = res.data.data;
+          plist.innerHTML = '';
+          productos.slice(0, 3).forEach(p => {
+            plist.insertAdjacentHTML('beforeend', `
+              <div class="product-item">
+                <img src="/uploads/${p.imagen}" alt="${p.nombre}">
+                <h4>${p.nombre}</h4>
+                <p>${p.descripcion || ''}</p>
+                <span class="price">$${parseFloat(p.precio).toFixed(2)}</span>
+              </div>
+            `);
+          });
+        } catch (err) {
+          console.error('Error loading products:', err);
+          plist.innerHTML = '<p class="error">No se pudieron cargar los productos.</p>';
+        }
+      }
+      document.addEventListener('DOMContentLoaded', loadProducts);
+    </script>
+
+    <!-- ========= ADDITIONAL SCRIPTS ========= -->
+    <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Initialize map with Leaflet
+      const map = L.map('map').setView([7.89391, -72.50471], 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+      L.marker([7.89391, -72.50471]).addTo(map)
+        .bindPopup('Zona Apícola – Norte de Santander')
+        .openPopup();
+
+      // Fetch and render quality chart data
+      try {
+        const res = await fetch('/api/honey_quality_chart');
+        if (!res.ok) throw new Error('Error fetching data');
+        const { labels, datasets } = await res.json();
+        const ctx = document.getElementById('qualityChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              { label: 'Humedad (%)', data: datasets.humidity, borderWidth: 2, tension: 0.3 },
+              { label: 'Acidez (meq/kg)', data: datasets.acidity, borderWidth: 2, tension: 0.3 },
+              { label: 'HMF (mg/kg)', data: datasets.hmf, borderWidth: 2, tension: 0.3 },
+              { label: 'Diastasa (G·g⁻¹)', data: datasets.diastase, borderWidth: 2, tension: 0.3 }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+          }
+        });
+      } catch (err) {
+        document.querySelector('.quality-chart-container')
+                .insertAdjacentHTML('beforeend', '<p style="color:red">No se pudieron cargar los datos de calidad.</p>');
+        console.error(err);
+      }
+    });
+    </script>
+  </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('unauthorized')) {
+      document.getElementById('unauth-modal').style.display = 'flex';
+      // remove param from url
+      history.replaceState(null, '', window.location.pathname);
+    }
+  });
+</script>
+
+  <script src="/js/validate-forms.js"></script>
+  <script>
+    window.userRole = "<%= (typeof currentUser !== 'undefined' && currentUser && currentUser.role) ? currentUser.role : 'guest' %>";
+  </script>
+  <script src="/js/disable-nav.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- ========= METADATA & STYLESHEET ========= -->
+  <meta charset="UTF-8">
+  <title>Registro de Apiario</title>
+  <link rel="icon" href="/img/LogoP.png" sizes="48x48" type="image/png">
+  <link rel="stylesheet" href="/styles/AS.css">
+</head>
+<body>
+  <!-- ========= SIDEBAR NAVIGATION ========= -->
+  <div class="sidebar">
+    <!-- Company logo at top -->
+    <img src="/img/Logo.png" alt="Logo">
+    <!-- Navigation buttons -->
+    <button class="menu-button" onclick="window.location.href='/Main'">Inicio</button>
+    <button class="menu-button" onclick="window.location.href='/User'">Usuarios</button>
+    <button class="menu-button" onclick="window.location.href='/agregarProducto'">Productos</button>
+    <button class="menu-button" onclick="window.location.href='/Apiarie'">Zonas</button>
+    <button class="menu-button" onclick="window.location.href='/Harvest'">Cosechas</button>
+    <button class="menu-button" onclick="window.location.href='/QualityH'">Calidad</button>
+    <button class="menu-button" onclick="window.location.href='/Standar'">Estándares</button>
+    <!-- Logout button at bottom -->
+    <button class="logout" onclick="window.location.href='/logout'">Salir</button>
+  </div>
+
+  <!-- ========= APIARY REGISTRATION FORM ========= -->
+  <div class="form-container">
+    <!-- Form heading -->
+    <h2>Registrar Nuevo Apiario</h2>
+    <form id="apiaryForm">
+      <!-- Apiary name -->
+      <div class="form-group">
+        <label for="name">Nombre del apiario</label>
+        <input type="text" id="name" name="name" maxlength="20" required>
+      </div>
+      <!-- Location field -->
+      <div class="form-group">
+        <label for="ubication">Ubicación</label>
+        <input type="text" id="ubication" name="ubication" maxlength="255" required>
+      </div>
+      <!-- Address field -->
+      <div class="form-group">
+        <label for="adress">Dirección</label>
+        <input type="text" id="adress" name="adress" maxlength="255" required>
+      </div>
+      <!-- Latitude field -->
+      <div class="form-group">
+        <label for="latitude">Latitud</label>
+        <input type="number" id="latitude" name="latitude" step="0.000001" min="-90" max="90" required>
+      </div>
+      <!-- Longitude field -->
+      <div class="form-group">
+        <label for="length">Longitud</label>
+        <input type="number" id="length" name="length" step="0.000001" min="-180" max="180" required>
+      </div>
+      <!-- Responsible user dropdown (populated via JS) -->
+      <div class="form-group">
+        <label for="id_user">Usuario responsable</label>
+        <select id="id_user" name="id_user" required>
+          <option value="">Cargando usuarios…</option>
+        </select>
+      </div>
+      <!-- Submit button -->
+      <button type="submit" class="btn">Registrar Apiario</button>
+    </form>
+    <!-- Link to view existing apiaries -->
+    <div class="footer">
+      <p><a href="/VApiarie">Ver Apiarios</a></p>
+    </div>
+  </div>
+
+  <!-- ========= MODAL FOR SUCCESS MESSAGE ========= -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <!-- Modal title and message -->
+      <h3 id="modal-title">✅ ¡Éxito!</h3>
+      <p id="modal-message">Apiario registrado correctamente.</p>
+      <!-- Close button -->
+      <button onclick="closeModal()">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- ========= CLIENT-SIDE SCRIPT ========= -->
+  <script>
+    // Populate user dropdown after DOM loads
+    document.addEventListener('DOMContentLoaded', () => {
+      loadUsers();
+      document.getElementById('apiaryForm').addEventListener('submit', submitForm);
+    });
+
+    // Fetch users and fill the select element
+    async function loadUsers() {
+      const select = document.getElementById('id_user');
+      try {
+        const res = await fetch('/usuarios');
+        const json = await res.json();
+        if (json.success) {
+          select.innerHTML = '<option value="">Seleccione...</option>';
+          json.data.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.id;
+            opt.textContent = `#${u.id} – ${u.name}`;
+            select.appendChild(opt);
+          });
+        } else {
+          select.innerHTML = '<option value="">No hay usuarios</option>';
+        }
+      } catch (err) {
+        console.error('Error loading users:', err);
+        select.innerHTML = '<option value="">Error cargando usuarios</option>';
+      }
+    }
+
+    // Handle form submission to register apiary
+    async function submitForm(e) {
+      e.preventDefault();
+      // Gather form data
+      const data = {
+        name: document.getElementById('name').value,
+        ubication: document.getElementById('ubication').value,
+        adress: document.getElementById('adress').value,
+        latitude: parseFloat(document.getElementById('latitude').value),
+        length: parseFloat(document.getElementById('length').value),
+        id_user: parseInt(document.getElementById('id_user').value)
+      };
+
+      try {
+        // Send POST request to create apiary
+        const response = await fetch('/registrar_apiario', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        // Update modal content based on result
+        document.getElementById('modal-title').textContent = result.success
+          ? '✅ ¡Registro exitoso!'
+          : '❌ Error';
+        document.getElementById('modal-message').textContent = result.message;
+        document.getElementById('modal').style.display = 'flex';
+        if (result.success) e.target.reset();
+      } catch (error) {
+        console.error(error);
+        document.getElementById('modal-title').textContent = '❌ Error';
+        document.getElementById('modal-message').textContent = 'No se pudo registrar el apiario.';
+        document.getElementById('modal').style.display = 'flex';
+      }
+    }
+
+    // Close the modal dialog
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+  </script>
+  <script src="/js/validate-forms.js"></script>
+  <script>
+    window.userRole = "<%= (typeof currentUser !== 'undefined' && currentUser && currentUser.role) ? currentUser.role : 'guest' %>";
+  </script>
+  <script src="/js/disable-nav.js"></script>
+
+</body>
+</html>

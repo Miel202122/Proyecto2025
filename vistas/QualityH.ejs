@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- ========= DOCUMENT METADATA ========= -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calidad de Miel</title>
+  <link rel="icon" sizes="48x48" type="image/png" href="/img/LogoP.png">
+  <!-- Main stylesheet for the Quality section -->
+  <link rel="stylesheet" href="/styles/QS.css" />
+</head>
+<body>
+  <!-- ========= SIDEBAR NAVIGATION ========= -->
+  <div class="sidebar">
+    <img src="/img/Logo.png" alt="Logo" />
+    <button class="menu-button" onclick="window.location.href='/Main'">Inicio</button>
+    <button class="menu-button" onclick="window.location.href='/User'">Usuarios</button>
+    <button class="menu-button" onclick="window.location.href='/agregarProducto'">Productos</button>
+    <button class="menu-button" onclick="window.location.href='/Apiarie'">Zonas</button>
+    <button class="menu-button" onclick="window.location.href='/Harvest'">Cosechas</button>
+    <button class="menu-button" onclick="window.location.href='/QualityH'">Calidad</button>
+    <button class="menu-button" onclick="window.location.href='/Standar'">Estandares</button>
+    <button class="logout" onclick="window.location.href='/logout'">Salir</button>
+  </div>
+
+  <!-- ========= MAIN CONTENT ========= -->
+  <div class="main-container">
+    <div class="main-wrapper">
+      <div class="container">
+        <!-- ======== FORM ========= -->
+        <div class="form-container">
+          <h2>Registrar / Editar Análisis</h2>
+          <form id="honeyQualityForm">
+            <input type="hidden" id="edit-id" />
+            <div class="form-group">
+              <label for="analysis_date">Fecha de Análisis</label>
+              <input type="date" id="analysis_date" name="analysis_date" required />
+            </div>
+            <div class="form-group">
+              <label for="humidity">Humedad (%)</label>
+              <input type="number" id="humidity" name="humidity" step="0.01" min="0" required />
+            </div>
+            <div class="form-group">
+              <label for="acidity">Acidez</label>
+              <input type="number" id="acidity" name="acidity" step="0.01" min="0" required />
+            </div>
+            <div class="form-group">
+              <label for="hmf">HMF</label>
+              <input type="number" id="hmf" name="hmf" step="0.01" min="0" required />
+            </div>
+            <div class="form-group">
+              <label for="diastase">Diastasa</label>
+              <input type="number" id="diastase" name="diastase" step="0.01" min="0" required />
+            </div>
+            <div class="form-group">
+              <label for="result">Resultado</label>
+              <select id="result" name="result" required>
+                <option value="">--Seleccionar--</option>
+                <option value="Mala">Mala</option>
+                <option value="Media">Media</option>
+                <option value="Buena">Buena</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="id_harvest">ID Cosecha</label>
+              <select id="id_harvest" name="id_harvest" required>
+                <option value="">Cargando cosechas…</option>
+              </select>
+            </div>
+            <button type="submit" class="btn" id="submit-btn">Registrar Análisis</button>
+            <button type="button" class="btn" id="cancel-edit-btn" style="display:none;" onclick="cancelEdit()">Cancelar</button>
+          </form>
+        </div>
+
+        <!-- ======== TABLE ========= -->
+        <div class="table-container">
+          <h2>📋 Análisis Registrados</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Humedad</th>
+                <th>Acidez</th>
+                <th>HMF</th>
+                <th>Diastasa</th>
+                <th>Resultado</th>
+                <th>Cosecha</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="honeyQualityTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="footer-buttons">
+        <button class="btn" onclick="crearReporte()">Crear Reporte</button>
+        <button class="btn" onclick="verAlertas()">Ver Alertas</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========= MODAL: INFO ========= -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <h3 id="modal-title">Mensaje</h3>
+      <p id="modal-message"></p>
+      <button onclick="cerrarModal()">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- ========= MODAL: CONFIRM DELETE ========= -->
+  <div class="modal" id="confirm-delete-modal" style="display:none">
+    <div class="modal-content">
+      <h2>¿Eliminar este análisis?</h2>
+      <button id="confirm-delete-yes">Sí</button>
+      <button onclick="document.getElementById('confirm-delete-modal').style.display='none'">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- ========= CLIENT-SIDE SCRIPT ========= -->
+  <script>
+    /* ------- 1. Estado global ------- */
+    let honeyData       = [];
+    let isEditing       = false;
+    let editId          = null;
+    let pendingDeleteId = null;
+
+    /* ------- 2. Inicialización ------- */
+    window.addEventListener('DOMContentLoaded', () => {
+      loadHarvests();
+      loadHoneyQualityData();
+
+      document
+        .getElementById('honeyQualityForm')
+        .addEventListener('submit', handleFormSubmit);
+
+      document
+        .getElementById('confirm-delete-yes')
+        .addEventListener('click', confirmDelete);
+    });
+
+    /* ------- 3. Cosechas ------- */
+    async function loadHarvests() {
+      const select = document.getElementById('id_harvest');
+      try {
+        const res  = await fetch('/cosechas');
+        const json = await res.json();
+
+        if (json.success && Array.isArray(json.data)) {
+          select.innerHTML =
+            '<option value="">Seleccione cosecha…</option>';
+          json.data.forEach(h => {
+            const opt = document.createElement('option');
+            opt.value = h.id;
+            opt.textContent = `#${h.id} – ${h.harvest_date}`;
+            select.appendChild(opt);
+          });
+        } else {
+          select.innerHTML = '<option value="">No hay cosechas</option>';
+        }
+      } catch (err) {
+        console.error(err);
+        select.innerHTML = '<option value="">Error al cargar</option>';
+      }
+    }
+
+    /* ------- 4. Alta / Edición ------- */
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+
+      const payload = {
+        analysis_date: document.getElementById('analysis_date').value,
+        humidity:      parseFloat(document.getElementById('humidity').value),
+        acidity:       parseFloat(document.getElementById('acidity').value),
+        hmf:           parseFloat(document.getElementById('hmf').value),
+        diastase:      parseFloat(document.getElementById('diastase').value),
+        result:        document.getElementById('result').value,
+        id_harvest:    Number(document.getElementById('id_harvest').value),
+      };
+
+      try {
+        const url    = isEditing
+          ? `/editar-calidad/${editId}`
+          : '/agregar-calidad';
+        const method = isEditing ? 'PUT' : 'POST';
+
+        const res    = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const json = await res.json();
+        if (json.success) {
+          resetForm();
+          loadHoneyQualityData();
+          mostrarModal('✅ Éxito', json.message);
+        } else {
+          mostrarModal('❌ Error', json.message);
+        }
+      } catch (err) {
+        console.error(err);
+        mostrarModal('❌ Error', 'Error al procesar la solicitud.');
+      }
+    }
+
+    function resetForm() {
+      document.getElementById('honeyQualityForm').reset();
+      isEditing = false;
+      editId = null;
+      document.getElementById('submit-btn').textContent = 'Registrar Análisis';
+      document.getElementById('cancel-edit-btn').style.display = 'none';
+    }
+
+    function cancelEdit() {
+      resetForm();
+    }
+
+    /* ------- 5. Tabla ------- */
+    async function loadHoneyQualityData() {
+      try {
+        const res  = await fetch('/calidades');
+        const json = await res.json();
+        honeyData  = json.success ? json.data : [];
+
+        const tbody = document.getElementById('honeyQualityTableBody');
+        tbody.innerHTML = '';
+
+        if (!honeyData.length) {
+          tbody.innerHTML =
+            '<tr><td colspan="9">No hay registros.</td></tr>';
+          return;
+        }
+
+        honeyData.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+<td>${item.id}</td>
+<td>${new Date(item.analysis_date).toLocaleDateString()}</td>
+<td>${item.humidity}</td>
+<td>${item.acidity}</td>
+<td>${item.hmf ?? item.HMF}</td>
+<td>${item.diastase ?? item.diastasa}</td>
+<td>${item.result}</td>
+<td>${item.id_harvest ?? item.harvest_id}</td>
+<td>
+  <button class="edit-btn" onclick="openEditForm(${item.id})">Editar</button>
+  <button class="delete-btn" onclick="deleteQuality(${item.id})">Eliminar</button>
+</td>`;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error(err);
+        document.getElementById('honeyQualityTableBody').innerHTML =
+          '<tr><td colspan="9">Error al cargar los registros.</td></tr>';
+      }
+    }
+
+    /* ------- 6. Edición ------- */
+    function openEditForm(id) {
+      const item = honeyData.find(x => x.id === id);
+      if (!item) return;
+
+      isEditing = true;
+      editId = id;
+      document.getElementById('submit-btn').textContent = 'Actualizar Análisis';
+      document.getElementById('cancel-edit-btn').style.display = 'block';
+
+      document.getElementById('analysis_date').value =
+        item.analysis_date.slice(0, 10);
+      document.getElementById('humidity').value   = item.humidity;
+      document.getElementById('acidity').value    = item.acidity;
+      document.getElementById('hmf').value        = item.hmf ?? item.HMF;
+      document.getElementById('diastase').value   = item.diastase ?? item.diastasa;
+      document.getElementById('result').value     = item.result;
+      document.getElementById('id_harvest').value =
+        item.id_harvest ?? item.harvest_id;
+    }
+
+    /* ------- 7. Eliminación ------- */
+    function deleteQuality(id) {
+      pendingDeleteId = id;
+      document.getElementById('confirm-delete-modal').style.display = 'flex';
+    }
+
+    async function confirmDelete() {
+      if (!pendingDeleteId) return;
+      try {
+        const res    = await fetch(`/eliminar-calidad/${pendingDeleteId}`, {
+          method: 'DELETE'
+        });
+        const json   = await res.json();
+
+        if (json.success) {
+          loadHoneyQualityData();
+          mostrarModal('✅ Eliminado', json.message);
+        } else {
+          mostrarModal('❌ Error', json.message || 'No se pudo eliminar.');
+        }
+      } catch (err) {
+        console.error(err);
+        mostrarModal('❌ Error', 'Ocurrió un error al eliminar.');
+      } finally {
+        pendingDeleteId = null;
+        document.getElementById('confirm-delete-modal').style.display = 'none';
+      }
+    }
+
+    /* ------- 8. Navegación ------- */
+    function crearReporte() { window.location.href = '/Reports'; }
+    function verAlertas()   { window.location.href = '/Alerts';  }
+
+    /* ------- 9. Modal genérico ------- */
+    function mostrarModal(titulo, mensaje) {
+      document.getElementById('modal-title').textContent   = titulo;
+      document.getElementById('modal-message').textContent = mensaje;
+      document.getElementById('modal').style.display       = 'flex';
+    }
+    function cerrarModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+  </script>
+
+  <!-- Extras: validación + control de menú por rol -->
+  <script src="/js/validate-forms.js"></script>
+  <script>
+    window.userRole =
+      "<%= (typeof currentUser !== 'undefined' && currentUser && currentUser.role) ? currentUser.role : 'guest' %>";
+  </script>
+  <script src="/js/disable-nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,318 @@
+/* ========= BASIC RESET =========
+   Apply border-box sizing to all elements and remove default spacing
+*/
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ========= PAGE BODY =========
+   Set base font, background, and vertical layout
+*/
+body {
+  font-family: Arial, sans-serif;
+  background-color: #FFF7D4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* ========= SIDEBAR MENU =========
+   Fixed vertical navigation on the left side
+*/
+.sidebar {
+  width: 200px;
+  background-color: #E6A400;         /* golden background */
+  padding: 20px 10px;                /* internal spacing */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;                     /* full viewport height */
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+.sidebar img {
+  width: 240px;
+  margin-bottom: 30px;               /* space below logo */
+}
+.menu-button {
+  color: white;
+  background-color: transparent;
+  font-weight: bold;
+  border: none;
+  font-size: 16px;
+  margin: 10px 0;
+  padding: 12px 20px;
+  width: 90%;
+  text-align: left;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+.menu-button:hover {
+  background-color: #D18C00;         /* darker on hover */
+  transform: translateX(5px);        /* slight shift */
+}
+.logout {
+  margin-top: 130%;                   /* push to bottom */
+  font-weight: bold;
+  background-color: #D18C00;
+  color: white;
+  padding: 12px 20px;
+  width: 90%;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.logout:hover {
+  background-color: rgb(204, 173, 0);
+}
+
+/* ========= MAIN CONTENT =========
+   Offset content to the right of the sidebar
+*/
+.main-container {
+  margin-left: 10%;                  /* compensate for fixed sidebar */
+  flex-grow: 1;
+  padding: 30px;
+  display: flex;
+  gap: 25px;
+  align-items: stretch;              /* equal-height children */
+}
+
+/* ========= HEADER =========
+   Page title styling with icon spacing
+*/
+h1 {
+  color: #4A3828;
+  font-size: 28px;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ========= SELECT INPUTS =========
+   - Dropdown menu styling
+*/
+select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  font-size: 1em;
+  border: 1px solid #D18C00;   /* tu borde naranja */
+  border-radius: 6px;
+}
+
+/* Opcional: que al enfocar también mantenga el mismo color */
+select:focus {
+  outline: none;
+  border-color: #D18C00;
+}
+/* ========= ALERT BOX =========
+   - Notification box design
+*/
+.alert-box {
+  background: #fff5cc;
+  border-left: 6px solid #ffa500;
+  padding: 15px;
+  margin-top: 15px;
+  border-radius: 6px;
+  white-space: pre-line;
+  font-size: 1em;
+  color: #333;
+  min-height: 100px;
+}
+
+/* ========= FILTER SECTION =========
+   Search/filter input and button styles
+*/
+.filter-section {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+}
+.filter-section input {
+  flex: 1;
+  padding: 12px 14px;
+  border: 1px solid #D18C00;
+  border-radius: 6px;
+  font-size: 16px;
+  background: #FFF;
+}
+.filter-section button {
+  padding: 12px 22px;
+  background: #D18C00;
+  color: #FFF;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.filter-section button:hover {
+  background: #D19200;
+}
+
+/* ========= TABLE CONTAINER =========
+   Wrapper for responsive table with shadow and rounding
+*/
+.table-container {
+  background: #FFDE8B;               /* pastel yellow */
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 1200px;
+  overflow-x: auto;                  /* horizontal scroll if needed */
+}
+
+/* ========= DATA TABLE =========
+   Base table styling with alternating row colors
+*/
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #FFF;
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 14px;
+}
+thead {
+  background: #C88900;               /* bold orange header */
+  color: #FFF;
+}
+th,
+td {
+  padding: 12px 15px;
+  border: 1px solid #E0C18F;
+  text-align: center;
+}
+tbody tr:nth-child(even) {
+  background: #FFF8E5;               /* light stripe */
+}
+tbody tr:hover {
+  background: #FFE9B5;               /* hover highlight */
+}
+
+/* ========= ACTION BUTTONS =========
+   Edit and delete button styles
+*/
+.btn {
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 6px 12px;
+  font-size: 13px;
+  transition: opacity 0.25s;
+}
+.btn:hover {
+  opacity: 0.8;
+}
+.edit {
+  background: #ffda7e;               /* soft orange */
+  color: #FFF;
+}
+.delete {
+  background: #D9534F;               /* red delete */
+  color: #FFF;
+}
+
+/* ========= FOOTER =========
+   Simple centered footer links
+*/
+.footer {
+  margin-top: 25px;
+  font-size: 14px;
+  color: #4A3828;
+  text-align: center;
+}
+.footer a {
+  color: #8B5E3C;
+  text-decoration: none;
+  margin: 0 6px;
+}
+.footer a:hover {
+  text-decoration: underline;
+}
+
+/* ========= MODAL DIALOG =========
+   Fullscreen overlay with centered box and animation
+*/
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;                            /* top/right/bottom/left: 0 */
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  justify-content: center;
+  align-items: center;
+}
+.modal-box {
+  background: #FFF;
+  padding: 28px 34px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 440px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.3s ease-in-out;
+}
+.modal-box h3 {
+  color: #4A3828;
+  margin-bottom: 18px;
+  text-align: center;
+}
+.modal-box label {
+  display: block;
+  font-size: 14px;
+  color: #4A3828;
+  margin-bottom: 12px;
+}
+.modal-box input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #D18C00;
+  border-radius: 6px;
+  font-size: 15px;
+  margin-top: 4px;
+}
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+.btn.save {
+  background: #28A745;                /* green save */
+  color: #FFF;
+  flex: 1;
+}
+.btn.cancel {
+  background: #6C757D;                /* gray cancel */
+  color: #FFF;
+  flex: 1;
+}
+
+/* ========= ANIMATION =========
+   Scale and fade in for modal appearance
+*/
+@keyframes fadeIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

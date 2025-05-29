@@ -1,0 +1,299 @@
+/* ========= BASIC RESET =========
+   Apply border-box sizing and remove default margins/padding
+*/
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ========= BODY / BACKGROUND =========
+   Set base font, background color, and flexible layout
+*/
+body {
+  font-family: Arial, sans-serif;
+  background-color: #FFF7D4;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ========= SIDEBAR MENU =========
+   Fixed left navigation panel spanning full viewport height
+*/
+.sidebar {
+  width: 200px;
+  background-color: #E6A400;
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+/* Sidebar logo */
+.sidebar img {
+  width: 240px;
+  margin-bottom: 30px;
+}
+/* Sidebar navigation buttons */
+.menu-button {
+  color: white;
+  background: transparent;
+  font-weight: bold;
+  border: none;
+  font-size: 16px;
+  margin: 10px 0;
+  padding: 12px 20px;
+  width: 90%;
+  text-align: left;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color .3s, transform .2s;
+}
+.menu-button:hover {
+  background-color: #D18C00;
+  transform: translateX(5px);
+}
+/* Logout button at bottom */
+.logout {
+  margin-top: 130%;
+  font-weight: bold;
+  background-color: #D18C00;
+  color: white;
+  padding: 12px 20px;
+  width: 90%;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.logout:hover {
+  background-color: rgb(204, 173, 0);
+}
+/* ========= MAIN CONTENT AREA =========
+   Offset content to the right of the sidebar and center children
+*/
+.main-container {
+  margin-left: 200px;           /* leave space for sidebar */
+  width: calc(100% - 200px);
+  padding: 30px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  align-items: center;
+}
+
+/* ========= FORM CONTAINER =========
+   Wrapper for forms with white background and shadow
+*/
+.form-container {
+  width: 90%;
+  max-width: 900px;
+  margin: 0 auto;               /* center horizontally */
+  background: #FFF;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.form-container h2 {
+  color: #5A3E2B;
+  text-align: center;
+  margin-bottom: 20px;
+}
+/* Form field groups */
+.form-group {
+  margin-bottom: 15px;
+}
+.form-group label {
+  display: block;
+  color: #333;
+  margin-bottom: 6px;
+  font-size: 0.95em;
+}
+.form-group select,
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1em;
+  background: #FFF;
+}
+/* Readonly fields styling */
+.form-group input[readonly],
+.form-group textarea[readonly] {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+/* ========= METRICS SECTION =========
+   Hidden by default, shown when .visible class is added
+*/
+#metrics-section {
+  display: none;
+  margin-top: 20px;
+}
+#metrics-section.visible {
+  display: block;
+}
+
+/* ========= BUTTON STYLES =========
+   Variants for primary, delete, cancel, and save actions
+*/
+.btn {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 10px 20px;
+  background: #FFA500;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color .3s;
+  font-size: 0.9em;
+}
+.btn:hover {
+  background: #e69500;
+}
+.btn.primary { background: #FFA500; }
+.btn.primary:hover { background: #e69500; }
+.btn.delete  { background: #dc3545; }
+.btn.delete:hover  { background: #c82333; }
+.btn.cancel  { background: #6c757d; }
+.btn.cancel:hover  { background: #5a6268; }
+.btn.save    { background: #28a745; }
+.btn.save:hover    { background: #218838; }
+
+/* Match width of PDF and delete buttons in tables */
+.table-container .btn.primary,
+.table-container .btn.delete {
+  width: 80px;
+  padding: 8px 0;
+  text-align: center;
+}
+
+/* ========= TABLE CONTAINER =========
+   Wrapper and styling for data tables with responsive overflow
+*/
+.table-container {
+  width: 90%;
+  max-width: 1000px;
+  margin: 0 auto;               /* center horizontally */
+  background: #FFF;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  overflow-x: auto;
+}
+.table-container h2 {
+  color: #5A3E2B;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.table-container table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;           /* allow auto column widths */
+  font-size: 0.8em;             /* smaller text */
+}
+.table-container th,
+.table-container td {
+  border: 1px solid #ccc;
+  padding: 6px 8px;
+  text-align: left;             /* left-align text */
+  white-space: normal;          /* allow line wrapping */
+}
+.table-container th {
+  background-color: #d18e00;
+  color: #FFF;
+}
+/* Center action buttons in last column */
+.table-container td:last-child {
+  text-align: center;
+  vertical-align: middle;
+}
+.table-container td:last-child .btn {
+  display: block;
+  margin: 6px auto;
+}
+
+/* ========= FOOTER =========
+   Simple footer text and link styles
+*/
+.footer {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #4A3828;
+  text-align: center;
+}
+.footer a {
+  color: #8B5E3C;
+  text-decoration: none;
+  transition: text-decoration 0.2s;
+}
+.footer a:hover {
+  text-decoration: underline;
+}
+
+/* ========= MODALS =========
+   Overlay and modal box for dialogs (delete confirmation, save success)
+*/
+.modal,
+#saveSuccessModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+.modal-box {
+  background: #FFF;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 450px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  text-align: center;
+  padding: 30px;
+  animation: fadeIn .3s ease-out;
+}
+/* Fade-in keyframes for modal appearance */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Confirm Delete Modal content */
+#confirmDeleteModal .modal-box h3,
+#confirmDeleteModal .modal-box p {
+  color: #333;
+  margin-bottom: 16px;
+}
+#confirmDeleteModal .modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* Success Modal styling */
+#saveSuccessModal h3 {
+  color: #28a745;
+  font-size: 1.4em;
+  margin-bottom: 8px;
+}
+#saveSuccessModal p {
+  color: #333;
+  margin-bottom: 20px;
+}
+#saveSuccessModal .btn.save {
+  width: 100px;
+  margin: 0 auto;
+}

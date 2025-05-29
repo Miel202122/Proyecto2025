@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- Document metadata and stylesheet link -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios Registrados 👤</title>
+    <link rel="icon" sizes="48x48" type="image/png" href="/img/LogoP.png">
+    <!-- Link to external stylesheet for the view users page -->
+    <link rel="stylesheet" href="/styles/VE.css">
+</head>
+<body>
+    <!-- Sidebar navigation menu -->
+    <div class="sidebar">
+        <!-- Logo displayed at top of sidebar -->
+        <img src="/img/Logo.png" alt="Logo" />
+        <!-- Navigation buttons (Spanish labels) -->
+        <button class="menu-button" onclick="window.location.href='/Main'">Inicio</button>
+        <button class="menu-button" onclick="window.location.href='/User'">Usuarios</button>
+        <button class="menu-button" onclick="window.location.href='/agregarProducto'">Productos</button>
+        <button class="menu-button" onclick="window.location.href='/Apiarie'">Zonas</button>
+        <button class="menu-button" onclick="window.location.href='/Harvest'">Cosechas</button>
+        <button class="menu-button" onclick="window.location.href='/QualityH'">Calidad</button>
+        <button class="menu-button" onclick="window.location.href='/Standar'">Estandares</button>
+        <button class="logout" onclick="window.location.href='/logout'">Salir</button>
+    </div>
+
+    <!-- Page heading in Spanish -->
+    <h1>👤 Lista de Usuarios Registrados</h1>
+
+    <!-- Filter section for searching users by name -->
+    <div class="filter-section">
+        <input type="text" id="filterNombre" placeholder="Filtrar por nombre...">
+        <button onclick="loadUsuarios()">Buscar</button>
+    </div>
+
+    <!-- Container for user table -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th><th>Nombre</th><th>Correo</th><th>Teléfono</th>
+                    <th>Estado</th><th>Fecha Registro</th><th>Rol</th><th>Acciones</th>
+                </tr>
+            </thead>
+            <!-- Table body populated dynamically via JavaScript -->
+            <tbody id="tablaUsuarios">
+                <!-- Cargado dinámicamente -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer link back to user registration page -->
+    <div class="footer">
+        <a href="/User" class="link">Volver</a>
+    </div>
+
+    <!-- Modal dialog for editing a user -->
+    <div class="modal" id="editModal">
+        <div class="modal-box">
+            <h3>Editar Usuario</h3>
+            <form id="editForm">
+                <!-- Hidden field to store user ID for editing -->
+                <input type="hidden" id="e_id" />
+                <!-- Editable fields (Spanish labels) -->
+                <label>Nombre <input type="text" id="e_name" required /></label><br>
+                <label>Correo <input type="email" id="e_mail" required /></label><br>
+                <label>Teléfono <input type="text" id="e_cellphone" required /></label><br>
+                <label>Rol
+                    <select id="e_role" required>
+                        <option value="admin">Admin</option>
+                        <option value="apiario">Apiario</option>
+                    </select>
+                </label><br>
+                <label>Estado
+                    <select id="e_status">
+                        <option value="1">Activo</option>
+                        <option value="0">Inactivo</option>
+                    </select>
+                </label>
+                <!-- Action buttons for save/cancel -->
+                <div class="modal-actions">
+                    <button type="submit" class="btn save">Guardar</button>
+                    <button type="button" class="btn cancel" onclick="closeModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirmation modal for deleting a user -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-box" style="text-align: center;">
+            <h3>¿Eliminar usuario?</h3>
+            <p>Esta acción no se puede deshacer.</p>
+            <div class="modal-actions">
+                <!-- Yes/No buttons for deletion confirmation -->
+                <button class="btn delete" id="btnDeleteYes">Sí, eliminar</button>
+                <button class="btn cancel" onclick="closeConfirm()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message modal for operation feedback -->
+    <div class="modal" id="msgModal">
+        <div class="modal-box" style="text-align: center;">
+            <!-- Title and body text updated dynamically -->
+            <h3 id="msgTitle">✅ ¡Éxito!</h3>
+            <p id="msgBody">Operación completada.</p>
+        </div>
+    </div>
+
+    <!-- Client-side JavaScript logic -->
+    <script>
+        let deleteId = null;
+        const editModal = document.getElementById("editModal");
+        const confirmModal = document.getElementById("confirmModal");
+        const msgModal = document.getElementById("msgModal");
+        const msgTitle = document.getElementById("msgTitle");
+        const msgBody = document.getElementById("msgBody");
+
+        /**
+         * Display a temporary message modal.
+         * @param {boolean} success - Whether the operation succeeded.
+         * @param {string} message - Message text to display.
+         * @param {function|null} after - Optional callback after hiding modal.
+         */
+        function showMsg(success, message, after = null) {
+            msgTitle.textContent = success ? '✅ ¡Éxito!' : '❌ Error';
+            msgBody.textContent = message;
+            msgModal.style.display = 'flex';
+            setTimeout(() => {
+                msgModal.style.display = 'none';
+                if (typeof after === 'function') after();
+            }, 2000);
+        }
+
+        // Close the edit user modal
+        function closeModal() { editModal.style.display = 'none'; }
+        // Close the delete confirmation modal
+        function closeConfirm() { confirmModal.style.display = 'none'; deleteId = null; }
+
+        /**
+         * Open the edit modal pre-filled with user data.
+         * @param {object} user - User object containing id, name, mail, cellphone, role, status.
+         */
+        function openModal(user) {
+            document.getElementById('e_id').value = user.id;
+            document.getElementById('e_name').value = user.name;
+            document.getElementById('e_mail').value = user.mail;
+            document.getElementById('e_cellphone').value = user.cellphone;
+            document.getElementById('e_status').value = user.status;
+            document.getElementById('e_role').value = user.role;
+            editModal.style.display = 'flex';
+        }
+
+        /**
+         * Prompt deletion confirmation for the given user ID.
+         * @param {number} id - User ID to delete.
+         */
+        async function eliminarUsuario(id) {
+            deleteId = id;
+            confirmModal.style.display = 'flex';
+        }
+
+        // Handle 'Yes' click in deletion confirmation
+        document.getElementById("btnDeleteYes").addEventListener("click", async () => {
+            if (!deleteId) return;
+            try {
+                const res = await fetch(`/usuarios/${deleteId}`, { method: "DELETE" });
+                const result = await res.json();
+                showMsg(result.success, result.message, loadUsuarios);
+            } catch (err) {
+                showMsg(false, "Error al eliminar");
+                console.error(err);
+            }
+            closeConfirm();
+        });
+
+        // Handle submission of the edit user form
+        document.getElementById("editForm").addEventListener("submit", async e => {
+            e.preventDefault();
+            const id = document.getElementById("e_id").value;
+            const payload = {
+                name: document.getElementById("e_name").value,
+                mail: document.getElementById("e_mail").value,
+                cellphone: document.getElementById("e_cellphone").value,
+                role: document.getElementById("e_role").value,
+                status: parseInt(document.getElementById("e_status").value)
+            };
+
+            try {
+                const res = await fetch(`/usuarios/${id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+                showMsg(result.success, result.message, loadUsuarios);
+            } catch (err) {
+                showMsg(false, "Error al actualizar");
+                console.error(err);
+            }
+            closeModal();
+        });
+
+        /**
+         * Load and display users in the table, optionally filtered by name.
+         */
+        async function loadUsuarios() {
+            const filtro = document.getElementById("filterNombre").value.trim();
+            let url = "/usuarios";
+            if (filtro !== "") url += `?nombre=${encodeURIComponent(filtro)}`;
+
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                const tbody = document.getElementById("tablaUsuarios");
+                tbody.innerHTML = "";
+
+                if (data.success && data.data.length > 0) {
+                    data.data.forEach(user => {
+                        const row = `
+                            <tr>
+                                <td>${user.id}</td>
+                                <td>${user.name}</td>
+                                <td>${user.mail}</td>
+                                <td>${user.cellphone}</td>
+                                <td>${user.status === 1 ? "Activo" : "Inactivo"}</td>
+                                <td>${new Date(user.registration_date).toLocaleString()}</td>
+                                <td>${user.role}</td>
+                                <td>
+                                    <!-- Edit and delete action buttons -->
+                                    <button class="btn edit" onclick='openModal(${JSON.stringify(user)})'>✏️</button>
+                                    <button class="btn delete" onclick='eliminarUsuario(${user.id})'>🗑️</button>
+                                </td>
+                            </tr>`;
+                        tbody.innerHTML += row;
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="8">No se encontraron usuarios.</td></tr>`;
+                }
+            } catch (err) {
+                console.error("Error al cargar usuarios:", err);
+                document.getElementById("tablaUsuarios").innerHTML = `<tr><td colspan="8">Error al cargar datos.</td></tr>`;
+            }
+        }
+
+        // Initialize the page by loading users
+        window.onload = loadUsuarios;
+    </script>
+  <script src="/js/validate-forms.js"></script>
+  <script>
+    window.userRole = "<%= (typeof currentUser !== 'undefined' && currentUser && currentUser.role) ? currentUser.role : 'guest' %>";
+  </script>
+  <script src="/js/disable-nav.js"></script>
+
+</body>
+</html>

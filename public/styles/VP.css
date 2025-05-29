@@ -1,0 +1,312 @@
+/* ========= BASIC RESET =========
+   Apply border-box sizing to all elements and remove default margins/padding
+*/
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ========= PAGE BODY =========
+   Set base font, background color, and vertical layout for the page
+*/
+body {
+  font-family: Arial, sans-serif;
+  background-color: #FFF7D4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  min-height: 100vh;
+}
+
+/* ========= SIDEBAR MENU =========
+   Fixed left navigation panel with logo and buttons
+*/
+.sidebar {
+  width: 200px;
+  background-color: #E6A400;
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+  position: fixed;
+  top: 0;      /* stick to top */
+  left: 0;     /* stick to left edge */
+}
+.sidebar img {
+  width: 240px;
+  margin-bottom: 30px;  /* space below logo */
+}
+.menu-button {
+  color: white;
+  background-color: transparent;
+  font-weight: bold;
+  border: none;
+  font-size: 16px;
+  margin: 10px 0;
+  padding: 12px 20px;
+  width: 90%;
+  text-align: left;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+.menu-button:hover {
+  background-color: #D18C00;  /* darker on hover */
+  transform: translateX(5px); /* slide right on hover */
+}
+.logout {
+  margin-top: 130%;           /* push button to bottom */
+  font-weight: bold;
+  background-color: #D18C00;
+  color: white;
+  padding: 12px 20px;
+  width: 90%;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.logout:hover {
+  background-color: rgb(204, 173, 0);
+}
+
+/* ========= MAIN CONTENT =========
+   Container for the main page content, offset by sidebar
+*/
+.main-container {
+  margin-left: 10%;           /* compensate for sidebar width */
+  flex-grow: 1;
+  padding: 30px;
+  display: flex;
+  gap: 25px;
+  align-items: stretch;       /* equal-height child panels */
+}
+
+/* ========= PAGE HEADER =========
+   Title styling with icon alignment
+*/
+h1 {
+  color: #4A3828;
+  font-size: 28px;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 8px;                   /* spacing between icon and text */
+}
+
+/* ========= TABLE CONTAINER =========
+   Wrapper for table with background and shadow
+*/
+.table-container {
+  background: #FFDE8B;         /* pastel yellow */
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 1200px;
+  overflow-x: auto;            /* horizontal scroll if needed */
+}
+
+/* ========= DATA TABLE =========
+   Styles for table, header, rows, and hover states
+*/
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #FFF;
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 14px;
+}
+thead {
+  background: #C88900;         /* bold orange header */
+  color: #FFF;
+}
+th,
+td {
+  padding: 12px 15px;
+  border: 1px solid #e0c18f;
+  text-align: center;
+}
+tbody tr:nth-child(even) {
+  background: #FFF8E5;         /* alternating row color */
+}
+tbody tr:hover {
+  background: #FFE9B5;         /* hover highlight */
+}
+
+/* ========= ACTION BUTTONS =========
+   Edit and delete button styles inside the table
+*/
+.btn {
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 6px 12px;
+  font-size: 13px;
+  transition: opacity 0.25s;
+}
+.btn:hover {
+  opacity: 0.8;                /* subtle fade on hover */
+}
+.edit {
+  background: #ffda7e;               /* soft orange */
+  color: #FFF;
+}
+.delete {
+  background: #D9534F;               /* red delete */
+  color: #FFF;
+}
+
+/* ========= BOTTOM LINK =========
+   Link for additional actions below the table
+*/
+.link-action {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #4A3828;
+  text-align: center;
+}
+.link-action a {
+  color: #8B5E3C;
+  text-decoration: none;
+}
+.link-action a:hover {
+  text-decoration: underline;
+}
+
+/* ========= MODAL DIALOG =========
+   Fullscreen overlay and centered modal box for editing/confirmation
+*/
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;                     /* top/right/bottom/left = 0 */
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  justify-content: center;
+  align-items: center;
+}
+.modal-box {
+  background: #FFF;
+  padding: 28px 34px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 440px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.3s ease-in-out;
+}
+.modal-box h3 {
+  color: #4A3828;
+  margin-bottom: 18px;
+  text-align: center;
+}
+.modal-box label {
+  display: block;
+  font-size: 14px;
+  color: #4A3828;
+  margin-bottom: 12px;
+}
+.modal-box input,
+.modal-box textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #D18C00;
+  border-radius: 6px;
+  font-size: 15px;
+  margin-top: 4px;
+}
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+.btn.save {
+  background: #28A745;         /* green save button */
+  color: #FFF;
+  flex: 1;                     /* equal width */
+}
+.btn.cancel {
+  background: #6C757D;         /* gray cancel button */
+  color: #FFF;
+  flex: 1;
+}
+
+/* ========= FOOTER =========
+   Bottom page links
+*/
+.footer {
+  margin-top: 25px;
+  font-size: 14px;
+  color: #4A3828;
+  text-align: center;
+}
+.footer a {
+  color: #8B5E3C;
+  text-decoration: none;
+  margin: 0 6px;
+}
+.footer a:hover {
+  text-decoration: underline;
+}
+
+/* ========= ANIMATION =========
+   Fade-in scale effect for modal appearance
+*/
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ========= RESPONSIVE ≤480px =========
+   Adjustments for very small screens
+*/
+@media (max-width: 480px) {
+  table {
+    font-size: 12px;
+  }
+  th,
+  td {
+    padding: 8px 6px;
+  }
+  .modal-box {
+    padding: 22px 20px;
+  }
+}
+
+/* Minimal modal styles */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0,0,0,0.4);
+  z-index: 999;
+}
+.modal-box {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  max-width: 460px;
+  width: 100%;
+}
+.modal-actions {
+  margin-top: 1.2rem;
+  display: flex;
+  gap: .8rem;
+  justify-content: center;
+}

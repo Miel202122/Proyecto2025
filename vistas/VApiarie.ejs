@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- Document metadata and stylesheet link -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apiarios Registrados 🐝</title>
+    <link rel="icon" sizes="48x48" type="image/png" href="/img/LogoP.png">
+    <!-- Link to external stylesheet for the view apiarios page -->
+    <link rel="stylesheet" href="/styles/VE.css">
+</head>
+<body>
+    <!-- Sidebar navigation menu -->
+    <div class="sidebar">
+        <!-- Logo displayed at top of sidebar -->
+        <img src="/img/Logo.png" alt="Logo" />
+        <!-- Navigation buttons (Spanish labels) -->
+        <button class="menu-button" onclick="window.location.href='/Main'">Inicio</button>
+        <button class="menu-button" onclick="window.location.href='/User'">Usuarios</button>
+        <button class="menu-button" onclick="window.location.href='/agregarProducto'">Productos</button>
+        <button class="menu-button" onclick="window.location.href='/Apiarie'">Zonas</button>
+        <button class="menu-button" onclick="window.location.href='/Harvest'">Cosechas</button>
+        <button class="menu-button" onclick="window.location.href='/QualityH'">Calidad</button>
+        <button class="menu-button" onclick="window.location.href='/Standar'">Estandares</button>
+        <button class="logout" onclick="window.location.href='/logout'">Salir</button>
+    </div>
+
+    <!-- Page heading in Spanish -->
+    <h1>🐝 Lista de Apiarios Registrados</h1>
+
+    <!-- Filter section for searching apiarios by zona -->
+    <div class="filter-section">
+        <input
+            type="text"
+            id="filterUbication"
+            placeholder="Filtrar por zona..."
+        >
+        <button onclick="loadApiarios()">Buscar</button>
+    </div>
+
+    <!-- Container for apiarios table -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Zona</th>
+                    <th>Dirección</th>
+                    <th>Latitud</th>
+                    <th>Longitud</th>
+                    <th>Fecha Registro</th>
+                    <th>ID Trabajador</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tablaApiarios">
+                <!-- Cargado dinámicamente -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer link back to zonas page -->
+    <div class="footer">
+        <a href="/Apiarie" class="link">Volver</a>
+    </div>
+
+    <!-- Modal dialog for editing an apiario -->
+    <div class="modal" id="editModal">
+        <div class="modal-box">
+            <h3>Editar Apiario</h3>
+            <form id="editForm">
+                <!-- Hidden field to store apiario ID for editing -->
+                <input type="hidden" id="e_id" />
+                <!-- Editable fields (Spanish labels) -->
+                <label>Nombre <input type="text" id="e_name" required /></label><br>
+                <label>Zona <input type="text" id="e_ubication" required /></label><br>
+                <label>Dirección <input type="text" id="e_address" required /></label><br>
+                <label>Latitud <input type="number" id="e_lat" step="0.000001" required /></label><br>
+                <label>Longitud <input type="number" id="e_long" step="0.000001" required /></label><br>
+                <!-- Action buttons for save/cancel -->
+                <div class="modal-actions">
+                    <button type="submit" class="btn save">Guardar</button>
+                    <button type="button" class="btn cancel" onclick="closeModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirmation modal for deleting an apiario -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-box" style="text-align: center;">
+            <h3>¿Eliminar apiario?</h3>
+            <p>Esta acción no se puede deshacer.</p>
+            <div class="modal-actions">
+                <!-- Yes/No buttons for deletion confirmation -->
+                <button class="btn delete" id="btnDeleteYes">Sí, eliminar</button>
+                <button class="btn cancel" onclick="closeConfirm()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message modal for operation feedback -->
+    <div class="modal" id="msgModal">
+        <div class="modal-box" style="text-align: center;">
+            <!-- Title and body text updated dynamically -->
+            <h3 id="msgTitle">✅ ¡Éxito!</h3>
+            <p id="msgBody">Operación completada.</p>
+        </div>
+    </div>
+
+    <!-- Client-side JavaScript logic -->
+    <script>
+        let deleteId = null;
+        const editModal    = document.getElementById("editModal");
+        const confirmModal = document.getElementById("confirmModal");
+        const msgModal     = document.getElementById("msgModal");
+        const msgTitle     = document.getElementById("msgTitle");
+        const msgBody      = document.getElementById("msgBody");
+
+        /**
+         * Display a temporary message modal.
+         * @param {boolean} success  - Whether the operation succeeded.
+         * @param {string}  message  - Message text to display.
+         * @param {function|null} after - Optional callback after hiding modal.
+         */
+        function showMsg(success, message, after = null) {
+            msgTitle.textContent = success ? '✅ ¡Éxito!' : '❌ Error';
+            msgBody.textContent  = message;
+            msgModal.style.display = 'flex';
+            setTimeout(() => {
+                msgModal.style.display = 'none';
+                if (typeof after === 'function') after();
+            }, 2000);
+        }
+
+        // Close the edit apiario modal
+        function closeModal() { editModal.style.display = 'none'; }
+        // Close the delete confirmation modal
+        function closeConfirm() { confirmModal.style.display = 'none'; deleteId = null; }
+
+        /**
+         * Open the edit modal pre-filled with apiario data.
+         * @param {object} apiario - Apiario object containing id, name, ubication, address, latitude, length.
+         */
+        function openModal(apiario) {
+            document.getElementById('e_id').value        = apiario.id;
+            document.getElementById('e_name').value      = apiario.name;
+            document.getElementById('e_ubication').value = apiario.ubication;
+            document.getElementById('e_address').value   = apiario.adress;
+            document.getElementById('e_lat').value       = apiario.latitude;
+            document.getElementById('e_long').value      = apiario.length;
+            editModal.style.display = 'flex';
+        }
+
+        /**
+         * Prompt deletion confirmation for the given apiario ID.
+         * @param {number} id - Apiario ID to delete.
+         */
+        function eliminarApiario(id) {
+            deleteId = id;
+            confirmModal.style.display = 'flex';
+        }
+
+        // Handle 'Yes' click in deletion confirmation
+        document.getElementById("btnDeleteYes").addEventListener("click", async () => {
+            if (!deleteId) return;
+            try {
+                const res = await fetch(`/apiarios/${deleteId}`, { method: "DELETE" });
+                const result = await res.json();
+                showMsg(result.success, result.message, loadApiarios);
+            } catch (err) {
+                showMsg(false, "Error al eliminar");
+                console.error(err);
+            }
+            closeConfirm();
+        });
+
+        // Handle submission of the edit apiario form
+        document.getElementById("editForm").addEventListener("submit", async e => {
+            e.preventDefault();
+            const id = document.getElementById("e_id").value;
+            const payload = {
+                name     : document.getElementById("e_name").value,
+                ubication: document.getElementById("e_ubication").value,
+                adress   : document.getElementById("e_address").value,
+                latitude : parseFloat(document.getElementById("e_lat").value),
+                length   : parseFloat(document.getElementById("e_long").value)
+            };
+
+            try {
+                const res = await fetch(`/apiarios/${id}`, {
+                    method : "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body   : JSON.stringify(payload)
+                });
+                const result = await res.json();
+                showMsg(result.success, result.message, loadApiarios);
+            } catch (err) {
+                showMsg(false, "Error al actualizar");
+                console.error(err);
+            }
+            closeModal();
+        });
+
+        /**
+         * Load and display apiarios in the table, optionally filtered by zona.
+         */
+        async function loadApiarios() {
+            const filtro = document.getElementById("filterUbication").value.trim();
+            let url = "/apiarios";
+            if (filtro !== "") url += `?ubication=${encodeURIComponent(filtro)}`;
+
+            try {
+                const res  = await fetch(url);
+                const { success, data } = await res.json();
+                const tbody = document.getElementById("tablaApiarios");
+                tbody.innerHTML = "";
+
+                if (success && data.length > 0) {
+                    data.forEach(apiario => {
+                        const row = `
+                            <tr>
+                                <td>${apiario.id}</td>
+                                <td>${apiario.name}</td>
+                                <td>${apiario.ubication}</td>
+                                <td>${apiario.adress}</td>
+                                <td>${apiario.latitude}</td>
+                                <td>${apiario.length}</td>
+                                <td>${new Date(apiario.registration_date).toLocaleDateString()}</td>
+                                <td>${apiario.id_user}</td>
+                                <td>
+                                    <button class="btn edit" onclick='openModal(${JSON.stringify(apiario)})'>✏️</button>
+                                    <button class="btn delete" onclick='eliminarApiario(${apiario.id})'>🗑️</button>
+                                </td>
+                            </tr>`;
+                        tbody.innerHTML += row;
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="9">No se encontraron apiarios.</td></tr>`;
+                }
+            } catch (err) {
+                console.error("Error al cargar apiarios:", err);
+                document.getElementById("tablaApiarios").innerHTML =
+                    `<tr><td colspan="9">Error al cargar datos.</td></tr>`;
+            }
+        }
+
+        // Initialize the page by loading apiarios
+        window.onload = loadApiarios;
+    </script>
+  <script src="/js/validate-forms.js"></script>
+  <script>
+    window.userRole = "<%= (typeof currentUser !== 'undefined' && currentUser && currentUser.role) ? currentUser.role : 'guest' %>";
+  </script>
+  <script src="/js/disable-nav.js"></script>
+
+</body>
+</html>

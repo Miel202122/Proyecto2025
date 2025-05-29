@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- Document metadata and title -->
+  <meta charset="UTF-8">
+  <title>Gestión de Productos</title>
+  <!-- Favicon link -->
+  <link rel="icon" sizes="48x48" type="image/png" href="/img/LogoP.png">
+  <!-- External stylesheet for product management -->
+  <link rel="stylesheet" href="/styles/VP.css">
+  <!-- Axios library for HTTP requests -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+  <!-- Sidebar navigation menu -->
+  <div class="sidebar">
+    <img src="/img/Logo.png" alt="Logo" />
+    <button class="menu-button" onclick="window.location.href='/Main'">Inicio</button>
+    <button class="menu-button" onclick="window.location.href='/User'">Usuarios</button>
+    <button class="menu-button" onclick="window.location.href='/agregarProducto'">Productos</button>
+    <button class="menu-button" onclick="window.location.href='/Apiarie'">Zonas</button>
+    <button class="menu-button" onclick="window.location.href='/Harvest'">Cosechas</button>
+    <button class="menu-button" onclick="window.location.href='/QualityH'">Calidad</button>
+    <button class="menu-button" onclick="window.location.href='/Standar'">Estandares</button>
+    <button class="logout" onclick="window.location.href='/logout'">Salir</button>
+  </div>
+
+  <!-- Main heading for product management -->
+  <h1>📦 Productos</h1>
+
+  <!-- Table container displaying product list -->
+  <div class="table-container">
+    <table id="tbl">
+      <thead>
+        <tr>
+          <th>ID</th><th>Nombre</th><th>Descripción</th><th>Precio</th>
+          <th>Imagen</th><th>ID Apiarie</th><th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody></tbody> <!-- Rows will be injected dynamically -->
+    </table>
+  </div>
+
+  <!-- Footer link back to product creation -->
+  <div class="footer">
+    <a href="/agregarProducto">Volver</a>
+  </div>
+
+  <!-- Modal for creating or editing a product -->
+  <div class="modal" id="editModal" role="dialog" aria-modal="true" onclick="if(event.target===this) closeEdit()">
+    <div class="modal-box" role="document">
+      <!-- Close button for edit modal -->
+      <button type="button" class="btn cancel" style="position:absolute; top:10px; right:10px;" onclick="closeEdit()">×</button>
+      <!-- Modal title (Edit or Create) -->
+      <h3 id="editTitle">Editar Producto</h3>
+      <!-- Form for product data -->
+      <form id="editForm">
+        <!-- Hidden field to store product ID when editing -->
+        <input type="hidden" id="f_id">
+
+        <!-- Input for product name -->
+        <label>Nombre:
+          <input type="text" id="f_nombre" name="nombre" required>
+        </label>
+        <!-- Textarea for product description -->
+        <label>Descripción:
+          <textarea id="f_desc" name="descripcion"></textarea>
+        </label>
+        <!-- Input for product price -->
+        <label>Precio:
+          <input type="number" id="f_precio" name="precio" step="0.01" required>
+        </label>
+        <!-- Input for associated apiary ID -->
+        <label>ID Apiarie:
+          <input type="number" id="f_apiarie" name="id_apiarie" required>
+        </label>
+        <!-- File input for product image (hidden on edit) -->
+        <label id="lblImagen">Imagen:
+          <input type="file" id="f_imagen" name="imagen">
+        </label>
+
+        <!-- Action buttons for saving or cancelling -->
+        <div class="modal-actions">
+          <button type="submit" class="btn save">Guardar</button>
+          <button type="button" class="btn cancel" onclick="closeEdit()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Confirmation modal for deletion -->
+  <div class="modal" id="confirmModal" role="dialog" aria-modal="true" onclick="if(event.target===this) closeConfirm()">
+    <div class="modal-box" style="max-width:360px; text-align:center;" role="document">
+      <!-- Close button for confirmation modal -->
+      <button type="button" class="btn cancel" style="position:absolute; top:10px; right:10px;" onclick="closeConfirm()">×</button>
+      <!-- Confirmation message -->
+      <h3>¿Eliminar producto?</h3>
+      <p>This action cannot be undone.</p>
+      <!-- Confirmation action buttons -->
+      <div class="modal-actions">
+        <button class="btn delete" id="btnDeleteYes">Sí, eliminar</button>
+        <button class="btn cancel" onclick="closeConfirm()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feedback message modal -->
+  <div class="modal" id="msgModal">
+    <div class="modal-box" style="max-width:380px; text-align:center;">
+      <!-- Dynamic title and body -->
+      <h3 id="msgTitle">✅ ¡Éxito!</h3>
+      <p id="msgBody">Operación completada.</p>
+    </div>
+  </div>
+
+  <script>
+    // DOM references for table, modals, and message elements
+    const tblBody      = document.querySelector('#tbl tbody');
+    const editModal    = document.getElementById('editModal');
+    const confirmModal = document.getElementById('confirmModal');
+    const msgModal     = document.getElementById('msgModal');
+    const msgTitle     = document.getElementById('msgTitle');
+    const msgBody      = document.getElementById('msgBody');
+    const btnDeleteYes = document.getElementById('btnDeleteYes');
+    let products = [], deleteId = null;
+
+    /**
+     * Show a temporary feedback modal.
+     * @param {boolean} success - Indicates operation success.
+     * @param {string} message - Text to display.
+     * @param {function|null} after - Optional callback after hiding.
+     */
+    function showMsg(success, message, after = null) {
+      msgTitle.textContent = success ? '✅ ¡Éxito!' : '❌ Error';
+      msgBody.textContent  = message;
+      msgModal.style.display = 'flex';
+      setTimeout(() => {
+        msgModal.style.display = 'none';
+        if (typeof after === 'function') after();
+      }, 2200);
+    }
+
+    /**
+     * Load product list from the server and render table rows.
+     */
+    async function load() {
+      try {
+        const res = await axios.get('/api/productos');
+        products = res.data.data;
+        tblBody.innerHTML = products.map(p => `
+          <tr data-id="${p.id}">
+            <td>${p.id}</td>
+            <td>${p.nombre}</td>
+            <td>${p.descripcion || ''}</td>
+            <td>$${parseFloat(p.precio).toFixed(2)}</td>
+            <td><img src="/uploads/${p.imagen}" width="250"></td>
+            <td>${p.id_apiarie}</td>
+            <td>
+              <button class="btn edit">✏️</button>
+              <button class="btn delete">🗑️</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        console.error(err);
+        showMsg(false, 'Error loading products');
+      }
+    }
+    // Initial data load
+    load();
+
+    /**
+     * Close the edit/create modal.
+     */
+    function closeEdit() {
+      editModal.style.display = 'none';
+    }
+
+    /**
+     * Close the delete confirmation modal and reset ID.
+     */
+    function closeConfirm() {
+      confirmModal.style.display = 'none';
+      deleteId = null;
+    }
+
+    // Delegate click events for edit and delete buttons
+    tblBody.addEventListener('click', e => {
+      const tr = e.target.closest('tr');
+      const id = tr?.dataset.id;
+      if (!id) return;
+
+      // Handle edit button click
+      if (e.target.matches('.btn.edit')) {
+        const p = products.find(x => x.id == id);
+        document.getElementById('editTitle').textContent = 'Editar Producto';
+        document.getElementById('lblImagen').style.display = 'none';
+        document.getElementById('f_id').value      = p.id;
+        document.getElementById('f_nombre').value  = p.nombre;
+        document.getElementById('f_desc').value    = p.descripcion;
+        document.getElementById('f_precio').value  = p.precio;
+        document.getElementById('f_apiarie').value = p.id_apiarie;
+        editModal.style.display = 'flex';
+      }
+
+      // Handle delete button click
+      if (e.target.matches('.btn.delete')) {
+        deleteId = id;
+        confirmModal.style.display = 'flex';
+      }
+    });
+
+    // Handle form submission for create/edit
+    document.getElementById('editForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const id = document.getElementById('f_id').value;
+
+      if (id) {
+        // Update existing product via JSON
+        const payload = {
+          nombre:      document.getElementById('f_nombre').value,
+          descripcion: document.getElementById('f_desc').value,
+          precio:      document.getElementById('f_precio').value,
+          id_apiarie:  document.getElementById('f_apiarie').value
+        };
+        try {
+          const res = await axios.put(`/api/productos/${id}`, payload);
+          showMsg(res.data.success, res.data.message, () => { closeEdit(); load(); });
+        } catch (err) {
+          console.error(err);
+          showMsg(false, 'Server error while updating');
+        }
+      } else {
+        // Create new product with FormData (including image)
+        const fd = new FormData();
+        ['nombre', 'descripcion', 'precio', 'id_apiarie'].forEach(name =>
+          fd.append(name, document.getElementById(`f_${name}`).value)
+        );
+        const file = document.getElementById('f_imagen').files[0];
+        if (!file) return showMsg(false, 'Please select an image');
+        fd.append('imagen', file);
+
+        try {
+          const res = await axios.post('/api/productos', fd, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+          showMsg(res.data.success, res.data.message, () => { closeEdit(); load(); });
+        } catch (err) {
+          console.error(err);
+          showMsg(false, 'Server error while creating');
+        }
+      }
+    });
+
+    // Handle deletion confirmation
+    btnDeleteYes.addEventListener('click', async () => {
+      if (!deleteId) return;
+      btnDeleteYes.disabled = true;
+      btnDeleteYes.textContent = 'Processing…';
+      try {
+        const res = await axios.delete(`/api/productos/${deleteId}`);
+        showMsg(res.data.success, res.data.message, load);
+      } catch (err) {
+        console.error(err);
+        showMsg(false, 'Error deleting product');
+      } finally {
+        btnDeleteYes.disabled = false;
+        btnDeleteYes.textContent = 'Sí, eliminar';
+        closeConfirm();
+      }
+    });
+  </script>
+  <script src="/js/validate-forms.js"></script>
+  <script>
+    window.userRole = "<%= (typeof currentUser !== 'undefined' && currentUser && currentUser.role) ? currentUser.role : 'guest' %>";
+  </script>
+  <script src="/js/disable-nav.js"></script>
+
+</body>
+</html>

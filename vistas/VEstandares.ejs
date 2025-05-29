@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- Document metadata and favicon -->
+  <meta charset="UTF-8" />
+  <title>Lista de Estándares Registrados</title>
+  <link rel="icon" sizes="48x48" type="image/png" href="/img/LogoP.png">
+
+  <!-- External stylesheet -->
+  <link rel="stylesheet" href="/styles/VE.css" />
+
+  <!-- Axios library for HTTP requests -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <!-- Minimal modal styles (if not provided by VE.css) -->
+  <style>
+    .modal { display: none; position: fixed; inset: 0; justify-content: center; align-items: center; background: #0004; z-index: 999; }
+    .modal-box { background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 12px #0003; max-width: 460px; width: 100%; }
+    .modal-actions { margin-top: 1.2rem; display: flex; gap: .8rem; justify-content: center; }
+  </style>
+</head>
+<body>
+  <!-- Sidebar navigation menu -->
+  <div class="sidebar">
+    <img src="/img/Logo.png" alt="Logo" />
+    <button class="menu-button" onclick="window.location.href='/Main'">Inicio</button>
+    <button class="menu-button" onclick="window.location.href='/User'">Usuarios</button>
+    <button class="menu-button" onclick="window.location.href='/agregarProducto'">Productos</button>
+    <button class="menu-button" onclick="window.location.href='/Apiarie'">Zonas</button>
+    <button class="menu-button" onclick="window.location.href='/Harvest'">Cosechas</button>
+    <button class="menu-button" onclick="window.location.href='/QualityH'">Calidad</button>
+    <button class="menu-button" onclick="window.location.href='/Standar'">Estandares</button>
+    <button class="logout" onclick="window.location.href='/logout'">Salir</button>
+  </div>
+
+  <!-- Page heading -->
+  <h1>📏 Lista de Estándares Registrados</h1>
+
+  <!-- Filter section -->
+  <div class="filter-section">
+    <input type="text" id="searchInput" placeholder="Filtrar por nombre…" />
+    <button onclick="loadTable(searchInput.value)">Buscar</button>
+  </div>
+
+  <!-- Table container -->
+  <div class="table-container">
+    <table id="stdTable" class="table">
+      <thead>
+        <tr>
+          <th>ID</th><th>Nombre</th>
+          <th>Hum&nbsp;max</th><th>Hum&nbsp;min</th>
+          <th>Aci&nbsp;max</th><th>Aci&nbsp;min</th>
+          <th>HMF&nbsp;max</th><th>HMF&nbsp;min</th>
+          <th>Dia&nbsp;max</th><th>Dia&nbsp;min</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="stdBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Footer link -->
+  <div class="footer">
+    <a href="/Standar">Volver</a>
+  </div>
+
+  <!-- Edit Standard modal -->
+  <div class="modal" id="editModal">
+    <div class="modal-box">
+      <h3>Editar Estándar</h3>
+      <form id="editForm">
+        <input type="hidden" id="e_id" />
+
+        <label>Nombre <input type="text" id="e_name" required /></label>
+        <label>Humedad máxima <input type="number" id="e_max_m" step="0.01" required /></label>
+        <label>Humedad mínima <input type="number" id="e_min_m" step="0.01" required /></label>
+        <label>Acidez máxima <input type="number" id="e_max_a" step="0.01" required /></label>
+        <label>Acidez mínima <input type="number" id="e_min_a" step="0.01" required /></label>
+        <label>HMF máximo <input type="number" id="e_max_hmf" step="0.01" required /></label>
+        <label>HMF mínimo <input type="number" id="e_min_hmf" step="0.01" required /></label>
+        <label>Diastasa máxima <input type="number" id="e_max_d" step="0.01" required /></label>
+        <label>Diastasa mínima <input type="number" id="e_min_d" step="0.01" required /></label>
+
+        <div class="modal-actions">
+          <button type="submit" class="btn save">Guardar</button>
+          <button type="button" class="btn cancel" onclick="closeModal()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete confirmation modal -->
+  <div class="modal" id="confirmModal">
+    <div class="modal-box" style="max-width:360px; text-align:center;">
+      <h3>¿Eliminar estándar?</h3>
+      <p>Esta acción no se puede deshacer.</p>
+      <div class="modal-actions">
+        <button class="btn delete" id="btnDeleteYes">Sí, eliminar</button>
+        <button class="btn cancel" onclick="closeConfirm()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message feedback modal -->
+  <div class="modal" id="msgModal">
+    <div class="modal-box" style="max-width:380px; text-align:center;">
+      <h3 id="msgTitle">✅ ¡Éxito!</h3>
+      <p id="msgBody">Operación completada.</p>
+    </div>
+  </div>
+
+  <!-- Main JavaScript logic -->
+  <script>
+    // References to DOM elements
+    const stdBody      = document.getElementById('stdBody');
+    const searchInput  = document.getElementById('searchInput');
+    const editModal    = document.getElementById('editModal');
+    const confirmModal = document.getElementById('confirmModal');
+    const msgModal     = document.getElementById('msgModal');
+    const msgTitle     = document.getElementById('msgTitle');
+    const msgBody      = document.getElementById('msgBody');
+    const btnDeleteYes = document.getElementById('btnDeleteYes');
+
+    /**
+     * Show a temporary message modal.
+     * @param {boolean} success  - Whether the operation succeeded.
+     * @param {string} message   - The message to display.
+     * @param {function|null} after - Optional callback after hiding modal.
+     */
+    function showMsg(success, message, after = null) {
+      msgTitle.textContent = success ? '✅ ¡Éxito!' : '❌ Error';
+      msgBody.textContent  = message;
+      msgModal.style.display = 'flex';
+      setTimeout(() => {
+        msgModal.style.display = 'none';
+        if (typeof after === 'function') after();
+      }, 2200);
+    }
+
+    // Load standards and render table rows
+    async function loadTable(query = '') {
+      try {
+        const { data } = await axios.get('/standards');
+        const rows = query
+          ? data.data.filter(r => r.name.toLowerCase().includes(query.toLowerCase()))
+          : data.data;
+        renderRows(rows);
+      } catch (e) {
+        console.error(e);
+        showMsg(false, 'Error loading data');
+      }
+    }
+
+    /**
+     * Render table rows for the given standards.
+     * @param {Array} rows - Array of standard objects.
+     */
+    function renderRows(rows) {
+      stdBody.innerHTML = rows.map(r => `
+        <tr data-id="${r.id}">
+          <td>${r.id}</td><td>${r.name}</td>
+          <td>${r.max_moisture}</td><td>${r.min_moisture}</td>
+          <td>${r.max_acidity}</td><td>${r.min_acidity}</td>
+          <td>${r.max_HMF}</td><td>${r.min_HMF}</td>
+          <td>${r.max_diastase}</td><td>${r.min_diastase}</td>
+          <td>
+            <button class="btn edit" onclick='openModal(${JSON.stringify(r)})'>✏️</button>
+            <button class="btn delete">🗑️</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    // Show edit modal populated with selected standard
+    function openModal(std) {
+      const set = (id, val) => document.getElementById(id).value = val;
+      set('e_id',      std.id);
+      set('e_name',    std.name);
+      set('e_max_m',   std.max_moisture);
+      set('e_min_m',   std.min_moisture);
+      set('e_max_a',   std.max_acidity);
+      set('e_min_a',   std.min_acidity);
+      set('e_max_hmf', std.max_HMF);
+      set('e_min_hmf', std.min_HMF);
+      set('e_max_d',   std.max_diastase);
+      set('e_min_d',   std.min_diastase);
+      editModal.style.display = 'flex';
+    }
+
+    // Close the edit modal
+    function closeModal() {
+      editModal.style.display = 'none';
+    }
+
+    // Handle edit form submission
+    document.getElementById('editForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const id = document.getElementById('e_id').value;
+      const payload = {
+        name:          document.getElementById('e_name').value,
+        max_moisture: +document.getElementById('e_max_m').value,
+        min_moisture: +document.getElementById('e_min_m').value,
+        max_acidity:  +document.getElementById('e_max_a').value,
+        min_acidity:  +document.getElementById('e_min_a').value,
+        max_HMF:      +document.getElementById('e_max_hmf').value,
+        min_HMF:      +document.getElementById('e_min_hmf').value,
+        max_diastase: +document.getElementById('e_max_d').value,
+        min_diastase: +document.getElementById('e_min_d').value
+      };
+      try {
+        const res = await axios.put(`/actualizar_estandar/${id}`, payload);
+        showMsg(res.data.success, res.data.message, () => loadTable(searchInput.value));
+      } catch (err) {
+        console.error(err);
+        showMsg(false, 'Error updating');
+      }
+      closeModal();
+    });
+
+    // Track which standard is being deleted
+    let deleteId = null;
+
+    // Delegate delete button clicks
+    stdBody.addEventListener('click', e => {
+      if (e.target.closest('.btn.delete')) {
+        deleteId = e.target.closest('tr').dataset.id;
+        confirmModal.style.display = 'flex';
+      }
+    });
+
+    // Close delete confirmation modal
+    function closeConfirm() {
+      confirmModal.style.display = 'none';
+      deleteId = null;
+    }
+
+    // Handle deletion confirmation
+    btnDeleteYes.addEventListener('click', async () => {
+      if (!deleteId) return;
+      btnDeleteYes.textContent = 'Processing…';
+      btnDeleteYes.disabled = true;
+      try {
+        const res = await axios.delete(`/eliminar_estandar/${deleteId}`);
+        showMsg(res.data?.success, res.data?.message || 'Deleted', () => loadTable(searchInput.value));
+      } catch (err) {
+        console.error(err);
+        showMsg(false, 'Error deleting');
+      } finally {
+        btnDeleteYes.textContent = 'Sí, eliminar';
+        btnDeleteYes.disabled = false;
+        closeConfirm();
+      }
+    });
+
+    // Initialize table on page load
+    loadTable();
+  </script>
+  <script src="/js/validate-forms.js"></script>
+  <script>
+    window.userRole = "<%= (typeof currentUser !== 'undefined' && currentUser && currentUser.role) ? currentUser.role : 'guest' %>";
+  </script>
+  <script src="/js/disable-nav.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,294 @@
+/* ========= BASE STYLES =========
+   - Global box-sizing and remove default margins/padding on body
+*/
+* {
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #FFF7D4;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+
+/* ========= SIDEBAR MENU =========
+   - Fixed vertical navigation on the left
+*/
+.sidebar {
+  width: 200px;
+  background-color: #E6A400;
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+  position: fixed;
+  top: 0;     /* stick to top */
+  left: 0;    /* stick to left */
+}
+/* Sidebar logo */
+.sidebar img {
+  width: 240px;
+  margin-bottom: 30px;
+}
+/* Sidebar buttons */
+.menu-button {
+  color: white;
+  background-color: transparent;
+  font-weight: bold;
+  border: none;
+  font-size: 16px;
+  margin: 10px 0;
+  padding: 12px 20px;
+  width: 90%;
+  text-align: left;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+.menu-button:hover {
+  background-color: #D18C00;
+  transform: translateX(5px);
+}
+/* Sidebar logout button */
+.logout {
+  margin-top: 130%;
+  font-weight: bold;
+  background-color: #D18C00;
+  color: white;
+  padding: 12px 20px;
+  width: 90%;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.logout:hover {
+  background-color: rgb(204, 173, 0);
+}
+
+/* ========= MAIN LAYOUT =========
+   - Offset content area to the right of sidebar
+*/
+.main-container {
+  margin-left: 200px;         /* room for sidebar */
+  flex-grow: 1;
+  padding: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Wrapper to constrain overall width and stack sections */
+.main-wrapper {
+  width: 100%;
+  max-width: 1400px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* ========= PAGE HEADER =========
+   - Centered title with icon spacing
+*/
+.page-header {
+  text-align: center;
+}
+.page-header h1 {
+  font-size: 36px;
+  color: #4A3828;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ========= CONTENT CONTAINER =========
+   - Two-column layout for form and table, fixed height
+*/
+.container {
+  display: flex;
+  gap: 30px;
+  align-items: stretch;
+  height: 90vh;               /* occupy 90% of viewport height */
+}
+/* Form and table panels */
+.form-container,
+.table-container {
+  flex: 0 0 45%;              /* form 45%, table 55% */
+  height: 100%;
+  background-color: #FFDE8B;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+}
+
+/* ========= FORM STYLES =========
+   - Inputs and select fields inside form panel
+*/
+.form-container {
+  overflow-y: visible;        /* no vertical scroll */
+}
+.form-container h2 {
+  color: #4A3828;
+  font-size: 24px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.form-group {
+  margin-bottom: 18px;
+}
+.form-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 6px;
+  color: #4A3828;
+}
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #D18C00;
+  border-radius: 6px;
+  font-size: 15px;
+  background-color: #fff;
+}
+
+/* ========= BUTTON STYLES =========
+   - Primary action button full width
+*/
+.btn {
+  background-color: #D18C00;
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.3s;
+  margin-top: 10px;
+}
+.btn:hover {
+  background-color: #cfa000;
+}
+
+/* ========= TABLE PANEL =========
+   - Scrollable table with styled headers
+*/
+.table-container {
+  flex: 0 0 55%;
+  overflow-y: auto;           /* vertical scroll if needed */
+}
+.table-container h2 {
+  color: #4A3828;
+  font-size: 24px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+}
+th, td {
+  border: 1px solid #D18C00;
+  padding: 10px;
+  text-align: center;
+  font-size: 14px;
+}
+th {
+  background-color: #fddc8f;
+  color: #4A3828;
+}
+
+/* ========= ROW ACTION BUTTONS =========
+   - Fixed-width edit and delete buttons inside table rows
+*/
+.edit-btn,
+.delete-btn {
+  width: 70px;
+  padding: 6px 0;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  margin: 2px 0;
+}
+.edit-btn {
+  background-color: #ffda7e;
+  color: #fff;
+}
+.edit-btn:hover {
+  background-color: #ffc430;
+}
+.delete-btn {
+  background-color: #E24A4A;
+  color: #fff;
+}
+.delete-btn:hover {
+  background-color: #c13939;
+}
+
+/* ========= FOOTER BUTTON GROUP =========
+   - Centered set of footer controls
+*/
+.footer-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* ========= MODAL DIALOG =========
+   - Fullscreen overlay and centered modal box
+*/
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  justify-content: center;
+  align-items: center;
+}
+.modal-content {
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+  animation: fadeIn 0.3s ease-in-out;
+}
+.modal-content h3 {
+  color: #28a745;
+  margin-bottom: 12px;
+}
+.modal-content button {
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.modal-content button:hover {
+  background-color: #218838;
+}
+
+/* ========= ANIMATION KEYFRAMES =========
+   - Simple scale/fade-in for modal appearance
+*/
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

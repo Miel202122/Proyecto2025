@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- ========= DOCUMENT METADATA ========= -->
+  <meta charset="UTF-8">
+  <title>Agregar Producto</title>
+  <link rel="icon" sizes="48x48" type="image/png" href="/img/LogoP.png">
+  <!-- Link to external stylesheet -->
+  <link rel="stylesheet" href="/styles/LS.css">
+</head>
+<body>
+  <!-- ========= SIDEBAR NAVIGATION ========= -->
+  <div class="sidebar">
+    <!-- Logo at top of sidebar -->
+    <img src="/img/Logo.png" alt="Logo" />
+    <!-- Navigation buttons -->
+    <button class="menu-button" onclick="window.location.href='/Main'">Inicio</button>
+    <button class="menu-button" onclick="window.location.href='/User'">Usuarios</button>
+    <button class="menu-button" onclick="window.location.href='/agregarProducto'">Productos</button>
+    <button class="menu-button" onclick="window.location.href='/Apiarie'">Zonas</button>
+    <button class="menu-button" onclick="window.location.href='/Harvest'">Cosechas</button>
+    <button class="menu-button" onclick="window.location.href='/QualityH'">Calidad</button>
+    <button class="menu-button" onclick="window.location.href='/Standar'">Estándares</button>
+    <!-- Logout button positioned at bottom -->
+    <button class="logout" onclick="window.location.href='/logout'">Salir</button>
+  </div>
+
+  <!-- ========= MAIN FORM CONTAINER ========= -->
+  <div class="login-container">
+    <!-- Page heading -->
+    <h2>Registrar Producto</h2>
+    <!-- Product registration form -->
+    <form id="productoForm" enctype="multipart/form-data">
+      <!-- Product name input -->
+      <div class="form-group">
+        <label for="nombre">Nombre del producto:</label>
+        <input
+          type="text"
+          id="nombre"
+          name="nombre"
+          required
+          placeholder="Ingrese el nombre del producto"
+        >
+      </div>
+      <!-- Price input -->
+      <div class="form-group">
+        <label for="precio">Precio:</label>
+        <input
+          type="number"
+          id="precio"
+          name="precio"
+          required
+          placeholder="Ingrese el precio del producto"
+          step="0.01"
+        >
+      </div>
+      <!-- Apiary ID select -->
+      <div class="form-group">
+        <label for="id_apiarie">ID de apiario:</label>
+        <select id="id_apiarie" name="id_apiarie" required>
+          <option value="">— Selecciona un apiario —</option>
+        </select>
+      </div>
+      <!-- Description textarea -->
+      <div class="form-group">
+        <label for="descripcion">Descripción:</label>
+        <textarea
+          id="descripcion"
+          name="descripcion"
+          placeholder="Ingrese la descripción del producto"
+        ></textarea>
+      </div>
+      <!-- Image file input -->
+      <div class="form-group">
+        <label for="imagen">Imagen del producto:</label>
+        <input
+          type="file"
+          id="imagen"
+          name="imagen"
+          accept="image/*"
+          required
+        >
+      </div>
+      <!-- Submit button -->
+      <button type="submit" class="btn">Registrar Producto</button>
+    </form>
+    <!-- Footer link to view products -->
+    <div class="footer">
+      <p><a href="/VProducto">Ver Productos</a></p>
+    </div>
+  </div>
+
+  <!-- ========= MODAL DIALOG ========= -->
+  <div id="modal" style="
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.4);
+      justify-content:center;
+      align-items:center;">
+    <div class="modal-content" style="
+        background:#fff;
+        padding:2rem;
+        border-radius:8px;
+        text-align:center;">
+      <!-- Modal title element -->
+      <h3 id="modal-title"></h3>
+      <!-- Modal message element -->
+      <p id="modal-message"></p>
+      <!-- Close modal button -->
+      <button onclick="cerrarModal()">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- ========= CLIENT-SIDE SCRIPT ========= -->
+  <script>
+    // Elementos del DOM
+    const form       = document.getElementById('productoForm');
+    const modal      = document.getElementById('modal');
+    const titleEl    = document.getElementById('modal-title');
+    const msgEl      = document.getElementById('modal-message');
+    const selectApi  = document.getElementById('id_apiarie');
+
+    /**
+     * Carga los apiarios registrados y llena el select de IDs.
+     */
+    async function loadApiariosSelect() {
+      try {
+        const res = await fetch('/apiarios');
+        const { success, data } = await res.json();
+        if (success && Array.isArray(data)) {
+          data.forEach(apiario => {
+            const opt = document.createElement('option');
+            opt.value = apiario.id;
+            opt.textContent = `${apiario.id} — ${apiario.name}`;
+            selectApi.appendChild(opt);
+          });
+        }
+      } catch (err) {
+        console.error('Error cargando apiarios:', err);
+      }
+    }
+
+    // Inicializar carga de apiarios al cargar la página
+    window.addEventListener('load', loadApiariosSelect);
+
+    // Manejar envío del formulario
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const fd = new FormData(form);
+
+      try {
+        const res = await fetch('/agregar-producto', {
+          method: 'POST',
+          body: fd
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          titleEl.textContent = '✅ Producto agregado';
+          msgEl.textContent   = data.message;
+          form.reset();
+          // recargar el select tras limpiar
+          selectApi.innerHTML = '<option value="">— Selecciona un apiario —</option>';
+          await loadApiariosSelect();
+        } else {
+          titleEl.textContent = '❌ Error';
+          msgEl.textContent   = data.message;
+        }
+      } catch (err) {
+        console.error(err);
+        titleEl.textContent = '❌ Error inesperado';
+        msgEl.textContent   = 'Hubo un problema al registrar el producto.';
+      }
+
+      modal.style.display = 'flex';
+    });
+
+    // Cerrar el modal
+    function cerrarModal() {
+      modal.style.display = 'none';
+    }
+  </script>
+  <script src="/js/validate-forms.js"></script>
+  <script>
+    window.userRole = "<%= (typeof currentUser !== 'undefined' && currentUser && currentUser.role) ? currentUser.role : 'guest' %>";
+  </script>
+  <script src="/js/disable-nav.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,235 @@
+/* ========= PAGE LAYOUT & BACKGROUND =========
+   - Base font, full-height flex container centered horizontally
+   - Background color and removal of default margin
+*/
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #FFF7D4;
+    margin: 0;
+}
+
+/* ========= SIDEBAR MENU =========
+   - Fixed left navigation panel occupying full height
+   - Vertical flex layout with shadow for separation
+*/
+.sidebar {
+    width: 180px;
+    background-color: #E6A400;
+    padding: 20px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    position: fixed;
+    top: 0;      /* pinned to top */
+    left: 0;     /* pinned to left edge */
+}
+/* Main content offset to the right of the fixed sidebar */
+.main-container {
+    margin-left: 10%;            /* reserve space for sidebar */
+    flex-grow: 1;
+    padding: 30px;
+    display: flex;
+    gap: 25px;
+    align-items: stretch;        /* equal-height children */
+}
+/* Sidebar logo image */
+.sidebar img {
+    width: 240px;
+    margin-bottom: 30px;
+}
+/* Sidebar navigation buttons */
+.menu-button {
+    color: white;
+    background-color: transparent;
+    font-weight: bold;
+    border: none;
+    font-size: 16px;
+    margin: 10px 0;
+    padding: 12px 20px;
+    width: 90%;
+    text-align: left;
+    border-radius: 10px;
+    transition: background-color 0.3s, transform 0.2s;
+    cursor: pointer;
+}
+.menu-button:hover {
+    background-color: #D18C00;
+    transform: translateX(5px);
+}
+/* Logout button at bottom of sidebar */
+.logout {
+    margin-top: 130%;
+    font-weight: bold;
+    background-color: #D18C00;
+    color: white;
+    padding: 12px 20px;
+    width: 90%;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.logout:hover {
+    background-color: rgb(204, 173, 0);
+}
+
+/* Styles the <select> to match other inputs and buttons */
+select {
+    width: 100%;
+    padding: 12px 14px;
+    margin-top: 5px;
+    font-size: 16px;
+    border: 1px solid #D18C00;       /* same orange border */
+    border-radius: 6px;
+    background: #FFF;                 /* white background */
+    cursor: pointer;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  
+  /* Maintain orange border on focus */
+  select:focus {
+    outline: none;
+    border-color: #D18C00;
+  }
+  
+/* ========= LOGIN CONTAINER =========
+   - Centered card for login form with background, padding, and shadow
+*/
+.login-container {
+    background: #ffde8b;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    width: 500px;
+    text-align: center;
+}
+.login-container h2 {
+    margin-bottom: 25px;
+    font-size: 24px;
+    color: #4A3828;
+}
+
+/* ========= FORM FIELDS =========
+   - Grouping and styling for labels, inputs, and textareas
+*/
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+.form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #4A3828;
+}
+.form-group input,
+.form-group textarea {
+    width: 470px;
+    padding: 12px;
+    border: 1px solid #D18C00;
+    border-radius: 6px;
+    font-size: 16px;
+    background: #FFF;
+}
+
+/* ========= BUTTONS =========
+   - Full-width primary buttons with hover transition
+*/
+.btn {
+    width: 100%;
+    background-color: #D18C00;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.btn:hover {
+    background-color: #D19200;
+}
+
+.edit {
+    background: #ffda7e;               /* soft orange */
+    color: #FFF;
+  }
+  .delete {
+    background: #D9534F;               /* red delete */
+    color: #FFF;
+  }
+  
+
+/* ========= FOOTER =========
+   - Simple footer text with inline links
+*/
+.footer {
+    margin-top: 25px;
+    font-size: 14px;
+    color: #4A3828;
+    text-align: center;
+}
+.footer a {
+    color: #8B5E3C;
+    text-decoration: none;
+    margin: 0 6px;
+}
+.footer a:hover {
+    text-decoration: underline;
+}
+
+/* ========= MODAL OVERLAY & CONTENT =========
+   - Full-screen semi-transparent backdrop with centered dialog
+   - Fade-in scale animation for dialog entrance
+*/
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
+.modal-content {
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px 30px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    text-align: center;
+    max-width: 400px;
+    animation: fadeIn 0.3s ease-in-out;
+}
+.modal-content h3 {
+    margin-bottom: 15px;
+    color: #28a745;
+}
+.modal-content p {
+    margin: 10px 0;
+}
+.modal-content button {
+    background-color: #28a745;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.modal-content button:hover {
+    background-color: #218838;
+}
+/* Keyframes for modal fade-in effect */
+@keyframes fadeIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+}

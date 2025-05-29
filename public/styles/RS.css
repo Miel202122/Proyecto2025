@@ -1,0 +1,218 @@
+/* ===== BASE STYLES =====
+   - Global box-sizing and page layout
+*/
+* {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;                  /* use flex layout for centering */
+    justify-content: center;        /* center horizontally */
+    align-items: center;            /* center vertically */
+    height: 100vh;                  /* fill viewport height */
+    background-color: #FFF7D4;      /* light yellow background */
+    margin: 0;                      /* remove default margin */
+  }
+  
+  /* ===== SIDEBAR MENU =====
+     - Fixed vertical navigation at left
+  */
+  .sidebar {
+    width: 200px;
+    background-color: #E6A400;      /* golden background */
+    padding: 20px 10px;             /* internal spacing */
+    display: flex;
+    flex-direction: column;         /* stack items vertically */
+    align-items: center;            /* center items horizontally */
+    height: 100vh;                  /* full viewport height */
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); /* subtle right shadow */
+    position: fixed;                /* fix to viewport */
+    top: 0;                         /* align to top */
+    left: 0;                        /* align to left */
+  }
+  /* Sidebar logo */
+  .sidebar img {
+    width: 240px;                   /* fixed logo width */
+    margin-bottom: 30px;            /* space below logo */
+  }
+  /* Sidebar navigation buttons */
+  .menu-button {
+    color: white;
+    background: transparent;
+    font-weight: bold;
+    border: none;
+    font-size: 16px;
+    margin: 10px 0;                 /* vertical spacing */
+    padding: 12px 20px;             /* internal spacing */
+    width: 90%;                     /* nearly full width */
+    text-align: left;               /* align text to left */
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+  }
+  .menu-button:hover {
+    background-color: #D18C00;      /* darker on hover */
+    transform: translateX(5px);     /* slight right shift */
+  }
+  /* Logout button at bottom */
+  .logout {
+    margin-top: 130%;               /* push to bottom */
+    font-weight: bold;
+    background-color: #D18C00;
+    color: white;
+    padding: 12px 20px;
+    width: 90%;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  .logout:hover {
+    background-color: rgb(204, 173, 0);
+  }
+  
+  /* ===== MAIN CONTENT AREA =====
+     - Flex container to the right of sidebar
+  */
+  .main-container {
+    margin-left: 10%;               /* offset for fixed sidebar */
+    flex-grow: 1;                   /* take remaining space */
+    padding: 30px;                  /* internal spacing */
+    display: flex;                  /* horizontal layout */
+    gap: 25px;                      /* space between children */
+    align-items: stretch;           /* equal-height children */
+  }
+  
+  /* ===== LOGIN FORM CARD =====
+     - Centered login box styling
+  */
+  .login-container {
+    background: #ffde8b;            /* light yellow card */
+    padding: 40px;                  /* internal spacing */
+    border-radius: 12px;            /* rounded corners */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* drop shadow */
+    width: 500px;                   /* fixed width */
+    text-align: center;             /* center content */
+  }
+  .login-container h2 {
+    margin-bottom: 25px;            /* space below header */
+    font-size: 24px;                /* header size */
+    color: #4A3828;                 /* dark text */
+  }
+  
+  /* ===== FORM FIELDS =====
+     - Labels and inputs styling
+  */
+  .form-group {
+    margin-bottom: 20px;            /* spacing between fields */
+    text-align: left;               /* labels aligned left */
+  }
+  .form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;             /* space below label */
+    color: #4A3828;                 /* dark label color */
+  }
+  .form-group input,
+  .form-group select {
+    width: 100%;                    /* full-width inputs */
+    padding: 12px;                  /* internal spacing */
+    border: 1px solid #D18C00;      /* orange border */
+    border-radius: 6px;             /* rounded corners */
+    font-size: 16px;                /* readable text */
+    background: #FFF;               /* white background */
+    box-sizing: border-box;         /* include padding in width */
+  }
+  
+  /* ===== PRIMARY BUTTON =====
+     - Submit / action button styling
+  */
+  .btn {
+    width: 100%;                    /* full-width button */
+    background-color: #D18C00;      /* orange background */
+    color: white;                   /* white text */
+    border: none;
+    padding: 14px;                  /* internal spacing */
+    border-radius: 6px;             /* rounded corners */
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  .btn:hover {
+    background-color: #D19200;      /* darker on hover */
+  }
+  
+  /* ===== FOOTER LINKS =====
+     - Simple text links under form
+  */
+  .footer {
+    margin-top: 15px;               /* space above footer */
+    font-size: 14px;
+    color: #4A3828;                 /* dark text */
+  }
+  .footer a {
+    color: #8B5E3C;                 /* link color */
+    text-decoration: none;
+  }
+  .footer a:hover {
+    text-decoration: underline;     /* underline on hover */
+  }
+  
+  /* ===== MODAL OVERLAY & DIALOG =====
+     - Fullscreen overlay with centered box
+  */
+  .modal {
+    display: none;                  /* hidden by default */
+    position: fixed;
+    z-index: 1000;                  /* on top of page */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* semi-transparent black */
+    justify-content: center;        /* center horizontally */
+    align-items: center;            /* center vertically */
+  }
+  .modal-content {
+    background-color: #fff;         /* white box */
+    border-radius: 10px;
+    padding: 20px 30px;             /* internal spacing */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    text-align: center;
+    max-width: 400px;               /* limit width */
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  .modal-content h3 {
+    margin-bottom: 15px;            /* space below title */
+    color: #28a745;                 /* green text */
+  }
+  .modal-content p {
+    margin: 10px 0;                 /* vertical spacing */
+  }
+  .modal-content button {
+    background-color: #28a745;      /* green button */
+    border: none;
+    color: white;
+    padding: 8px 16px;              /* internal spacing */
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .modal-content button:hover {
+    background-color: #218838;      /* darker on hover */
+  }
+  
+  /* ===== ANIMATION FOR MODAL =====
+     - Scale and fade in effect
+  */
+  @keyframes fadeIn {
+    from {
+      transform: scale(0.9);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- Document metadata and title -->
+  <meta charset="UTF-8">
+  <title>Listado de Cosechas 🍯🐝</title>
+  <!-- Responsive viewport setting -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Favicon link -->
+  <link rel="icon" sizes="48x48" type="image/png" href="/img/LogoP.png">
+  <!-- External stylesheet -->
+  <link rel="stylesheet" href="/styles/VE.css">
+</head>
+
+<body>
+  <!-- Sidebar navigation menu -->
+  <div class="sidebar">
+    <!-- Logo at top of sidebar -->
+    <img src="/img/Logo.png" alt="Logo" />
+    <!-- Navigation buttons -->
+    <button class="menu-button" onclick="window.location.href='/Main'">Inicio</button>
+    <button class="menu-button" onclick="window.location.href='/User'">Usuarios</button>
+    <button class="menu-button" onclick="window.location.href='/agregarProducto'">Productos</button>
+    <button class="menu-button" onclick="window.location.href='/Apiarie'">Zonas</button>
+    <button class="menu-button" onclick="window.location.href='/Harvest'">Cosechas</button>
+    <button class="menu-button" onclick="window.location.href='/QualityH'">Calidad</button>
+    <button class="menu-button" onclick="window.location.href='/Standar'">Estandares</button>
+    <button class="logout" onclick="window.location.href='/logout'">Salir</button>
+  </div>
+
+  <!-- Main page heading -->
+  <h1>🍯 Lista de Cosechas Registradas 🐝</h1>
+
+  <!-- Filter section for apiario ID -->
+  <div class="filter-section">
+    <input type="text" id="filterApiarie" placeholder="Filtrar por Apiario...">
+    <button onclick="loadCosechas()">Buscar</button>
+  </div>
+
+  <!-- Table container for harvest records -->
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Fecha de Cosecha</th>
+          <th>Volumen (kg)</th>
+          <th>Tipo de Floración</th>
+          <th>Temperatura (°C)</th>
+          <th>Humedad (%)</th>
+          <th>ID Apiario</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tablaCosechas">
+        <!-- Rows will be populated dynamically -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Footer link back to harvest registration -->
+  <div class="footer">
+    <p><a href="/Harvest" class="btn">Volver al Registro</a></p>
+  </div>
+
+  <!-- Edit Harvest Modal -->
+  <div class="modal" id="editModal">
+    <div class="modal-box">
+      <h3>Editar Cosecha</h3>
+      <form id="editForm">
+        <!-- Hidden input for harvest ID -->
+        <input type="hidden" id="e_id" />
+        <label>Fecha <input type="date" id="e_date" required /></label><br>
+        <label>Volumen (kg) <input type="number" id="e_volumen" step="0.01" required /></label><br>
+        <label>Tipo de floración <input type="text" id="e_flor" required /></label><br>
+        <label>Temperatura (°C) <input type="number" id="e_temp" step="0.01" required /></label><br>
+        <label>Humedad (%) <input type="number" id="e_humidity" step="0.01" required /></label><br>
+        <div class="modal-actions">
+          <button type="submit" class="btn save">Guardar</button>
+          <button type="button" class="btn cancel" onclick="closeModal()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal" id="confirmModal">
+    <div class="modal-box" style="text-align: center;">
+      <h3>¿Eliminar cosecha?</h3>
+      <p>This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn delete" id="btnDeleteYes">Sí, eliminar</button>
+        <button class="btn cancel" onclick="closeConfirm()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feedback Message Modal -->
+  <div class="modal" id="msgModal">
+    <div class="modal-box" style="text-align: center;">
+      <!-- Title and message will be set dynamically -->
+      <h3 id="msgTitle">✅ ¡Éxito!</h3>
+      <p id="msgBody">Operación completada.</p>
+    </div>
+  </div>
+
+  <!-- Client-side script -->
+  <script>
+    // References to DOM elements
+    let deleteId = null;
+    const tbody = document.getElementById("tablaCosechas");
+    const editModal = document.getElementById("editModal");
+    const confirmModal = document.getElementById("confirmModal");
+    const msgModal = document.getElementById("msgModal");
+    const msgTitle = document.getElementById("msgTitle");
+    const msgBody = document.getElementById("msgBody");
+
+    /**
+     * Display a temporary feedback modal.
+     * @param {boolean} success - Indicates if the operation succeeded.
+     * @param {string} message - The message to show.
+     * @param {function|null} after - Callback to run after hiding modal.
+     */
+    function showMsg(success, message, after = null) {
+      msgTitle.textContent = success ? '✅ ¡Éxito!' : '❌ Error';
+      msgBody.textContent = message;
+      msgModal.style.display = 'flex';
+      setTimeout(() => {
+        msgModal.style.display = 'none';
+        if (typeof after === 'function') after();
+      }, 2000);
+    }
+
+    /**
+     * Open the edit modal and populate form fields.
+     * @param {object} cosecha - The harvest record object.
+     */
+    function openModal(cosecha) {
+      document.getElementById('e_id').value = cosecha.id;
+      document.getElementById('e_date').value = cosecha.harvest_date.split('T')[0];
+      document.getElementById('e_volumen').value = cosecha.volume_kg;
+      document.getElementById('e_flor').value = cosecha.flowering_type;
+      document.getElementById('e_temp').value = cosecha.Temperature;
+      document.getElementById('e_humidity').value = cosecha.humidity;
+      editModal.style.display = 'flex';
+    }
+
+    // Close the edit modal
+    function closeModal() {
+      editModal.style.display = 'none';
+    }
+
+    // Close the delete confirmation modal
+    function closeConfirm() {
+      confirmModal.style.display = 'none';
+      deleteId = null;
+    }
+
+    /**
+     * Prompt delete confirmation for a specific harvest ID.
+     * @param {number} id - The ID of the harvest to delete.
+     */
+    function confirmDelete(id) {
+      deleteId = id;
+      confirmModal.style.display = 'flex';
+    }
+
+    // Handle deletion after confirmation
+    document.getElementById('btnDeleteYes').addEventListener('click', async () => {
+      if (!deleteId) return;
+      try {
+        const res = await fetch(`/cosechas/${deleteId}`, { method: 'DELETE' });
+        const result = await res.json();
+        showMsg(result.success, result.message, loadCosechas);
+      } catch (err) {
+        console.error(err);
+        showMsg(false, 'Error al eliminar');
+      }
+      closeConfirm();
+    });
+
+    // Handle edit form submission
+    document.getElementById('editForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const id = document.getElementById('e_id').value;
+      const payload = {
+        harvest_date:    document.getElementById('e_date').value,
+        volume_kg:       parseFloat(document.getElementById('e_volumen').value),
+        flowering_type:  document.getElementById('e_flor').value,
+        Temperature:     parseFloat(document.getElementById('e_temp').value),
+        humidity:        parseFloat(document.getElementById('e_humidity').value),
+      };
+
+      try {
+        const res = await fetch(`/cosechas/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        showMsg(result.success, result.message, loadCosechas);
+      } catch (err) {
+        console.error(err);
+        showMsg(false, 'Error al actualizar');
+      }
+
+      closeModal();
+    });
+
+    /**
+     * Fetch and display harvest records, optionally filtered by apiario.
+     */
+    async function loadCosechas() {
+      const apiarieFilter = document.getElementById("filterApiarie").value.trim();
+      let url = "/cosechas";
+      if (apiarieFilter !== "") {
+        url += `?id_apiario=${encodeURIComponent(apiarieFilter)}`;
+      }
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        tbody.innerHTML = "";
+
+        if (data.success && data.data.length > 0) {
+          data.data.forEach(cosecha => {
+            const row = `
+              <tr>
+                <td>${cosecha.id}</td>
+                <td>${new Date(cosecha.harvest_date).toLocaleDateString()}</td>
+                <td>${cosecha.volume_kg}</td>
+                <td>${cosecha.flowering_type}</td>
+                <td>${cosecha.Temperature}</td>
+                <td>${cosecha.humidity}</td>
+                <td>${cosecha.id_apiarie}</td>
+                <td>
+                  <button class="btn edit" onclick='openModal(${JSON.stringify(cosecha)})'>✏️</button>
+                  <button class="btn delete" onclick='confirmDelete(${cosecha.id})'>🗑️</button>
+                </td>
+              </tr>`;
+            tbody.innerHTML += row;
+          });
+        } else {
+          tbody.innerHTML = `<tr><td colspan="8">No se encontraron cosechas.</td></tr>`;
+        }
+      } catch (error) {
+        console.error("Error al cargar las cosechas:", error);
+        tbody.innerHTML = `<tr><td colspan="8">Error al cargar los datos.</td></tr>`;
+      }
+    }
+
+    // Initialize the table on page load
+    window.onload = loadCosechas;
+  </script>
+  <script src="/js/validate-forms.js"></script>
+  <script>
+    window.userRole = "<%= (typeof currentUser !== 'undefined' && currentUser && currentUser.role) ? currentUser.role : 'guest' %>";
+  </script>
+  <script src="/js/disable-nav.js"></script>
+
+</body>
+</html>
